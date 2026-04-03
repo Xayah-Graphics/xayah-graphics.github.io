@@ -28,6 +28,11 @@ jobs:
           # package-manager: pnpm@latest # The Node package manager that should be used to install dependencies and build your site. Automatically detected based on your lockfile. (optional)
         # env:
         # PUBLIC_POKEAPI: 'https://pokeapi.co/api/v2' # Use single quotation marks for the variable value. (optional)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.11.0'
+          cache: 'pnpm'
 
   deploy:
     needs: build
@@ -36,12 +41,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.11.0'
-          cache: 'pnpm'
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
