@@ -1,0 +1,1957 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Xayah-Graphics</title><description>Xayah-Graphics</description><link>https://graphics.xayah.me/</link><language>en</language><item><title>Vulkan Tutorial Read Digest</title><link>https://graphics.xayah.me/posts/251211-vulkan-tutorial/</link><guid isPermaLink="true">https://graphics.xayah.me/posts/251211-vulkan-tutorial/</guid><description>https://docs.vulkan.org/tutorial/latest</description><pubDate>Thu, 11 Dec 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h1&gt;Initialization&lt;/h1&gt;
+&lt;h2&gt;Create Instance RAII&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;void VulkanEngine::create_instance_raii() {
+    glfwInit();
+    check_validation_layers_support(this-&amp;gt;context, this-&amp;gt;info.required_layers);
+    auto requiredExtensions = check_extensions_support(this-&amp;gt;context);
+
+    const ApplicationInfo appInfo{
+        .pApplicationName   = this-&amp;gt;info.app_name.c_str(),
+        .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+        .pEngineName        = this-&amp;gt;info.engine_name.c_str(),
+        .engineVersion      = VK_MAKE_VERSION(1, 0, 0),
+        .apiVersion         = ApiVersion14,
+    };
+    const InstanceCreateInfo createInfo{
+        .pApplicationInfo        = &amp;amp;appInfo,
+        .enabledLayerCount       = static_cast&amp;lt;uint32_t&amp;gt;(this-&amp;gt;info.required_layers.size()),
+        .ppEnabledLayerNames     = this-&amp;gt;info.required_layers.data(),
+        .enabledExtensionCount   = static_cast&amp;lt;uint32_t&amp;gt;(requiredExtensions.size()),
+        .ppEnabledExtensionNames = requiredExtensions.data(),
+    };
+    this-&amp;gt;instance = raii::Instance(context, createInfo);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;1. initialize glfw first&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;glfwInit()
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;glfwInit()&lt;/code&gt; need to be called before creating a Vulkan instance. :spoiler[(TODO: The exact reason unknown)]&lt;/p&gt;
+&lt;h3&gt;2. check validation layers support&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Layers&lt;/th&gt;
+&lt;th&gt;Notes&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;VK_LAYER_KHRONOS_validation&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;enable validation layers&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;pre&gt;&lt;code&gt;void check_validation_layers_support(const raii::Context&amp;amp; context, const std::vector&amp;lt;const char*&amp;gt;&amp;amp; requiredLayers) {
+    auto layerProperties = context.enumerateInstanceLayerProperties();
+    for (auto const&amp;amp; requiredLayer : requiredLayers) {
+        if (std::ranges::none_of(layerProperties, [requiredLayer](auto const&amp;amp; layerProperty) { return strcmp(layerProperty.layerName, requiredLayer) == 0; })) {
+            throw std::runtime_error(&quot;Required layer not supported: &quot; + std::string(requiredLayer));
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;3. check extensions support&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Extensions&lt;/th&gt;
+&lt;th&gt;Notes&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;EXTDebugUtilsExtensionName&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;KHRSwapchainExtensionName&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;KHRSpirv14ExtensionName&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;KHRSynchronization2ExtensionName&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;KHRCreateRenderpass2ExtensionName&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;pre&gt;&lt;code&gt;auto check_extensions_support(const raii::Context&amp;amp; context) {
+    uint32_t glfwExtensionCount = 0;
+    const auto glfwExtensions   = glfwGetRequiredInstanceExtensions(&amp;amp;glfwExtensionCount);
+    std::vector requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    requiredExtensions.push_back(EXTDebugUtilsExtensionName);
+    auto extensionProperties = context.enumerateInstanceExtensionProperties();
+    for (auto const&amp;amp; requiredExtension : requiredExtensions) {
+        if (std::ranges::none_of(extensionProperties, [requiredExtension](auto const&amp;amp; extensionProperty) { return strcmp(extensionProperty.extensionName, requiredExtension) == 0; })) {
+            throw std::runtime_error(&quot;Required extension not supported: &quot; + std::string(requiredExtension));
+        }
+    }
+    return requiredExtensions;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;4. ApplicationInfo&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Items&lt;/th&gt;
+&lt;th&gt;Notes&lt;/th&gt;
+&lt;th&gt;Affects Vulkan behavior?&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pApplicationName&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;The human-readable name of your application&lt;/td&gt;
+&lt;td&gt;❌&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;applicationVersion&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;A developer-defined version number for your app&lt;/td&gt;
+&lt;td&gt;❌&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pEngineName&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Name of the engine or framework, not the app&lt;/td&gt;
+&lt;td&gt;❌&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;engineVersion&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Version number of your engine, not Vulkan&lt;/td&gt;
+&lt;td&gt;❌&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;apiVersion&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;The maximum Vulkan API version your application understands&lt;/td&gt;
+&lt;td&gt;✅&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;pre&gt;&lt;code&gt;const ApplicationInfo appInfo{
+    .pApplicationName   = this-&amp;gt;info.app_name.c_str(),
+    .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+    .pEngineName        = this-&amp;gt;info.engine_name.c_str(),
+    .engineVersion      = VK_MAKE_VERSION(1, 0, 0),
+    .apiVersion         = ApiVersion14,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;What’s the difference between an application and an engine?&lt;/h4&gt;
+&lt;p&gt;High-level idea (one sentence)&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Application: The thing the user runs&lt;/li&gt;
+&lt;li&gt;Engine: The reusable technology that powers the app&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Real-world examples&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Application: Elden Ring&lt;/li&gt;
+&lt;li&gt;Engine: FromSoftware Engine&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;5. InstanceCreateInfo&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Items&lt;/th&gt;
+&lt;th&gt;Notes&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pApplicationInfo&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Links your instance to the metadata you already defined&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;enabledLayerCount&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Number of instance layers you want to enable&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;ppEnabledLayerNames&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Pointer to an array of C-strings&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;enabledExtensionCount   &lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Number of instance extensions you want&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;ppEnabledExtensionNames &lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;Pointer to array of extension names&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;pre&gt;&lt;code&gt;const InstanceCreateInfo createInfo{
+    .pApplicationInfo        = &amp;amp;appInfo,
+    .enabledLayerCount       = static_cast&amp;lt;uint32_t&amp;gt;(this-&amp;gt;info.required_layers.size()),
+    .ppEnabledLayerNames     = this-&amp;gt;info.required_layers.data(),
+    .enabledExtensionCount   = static_cast&amp;lt;uint32_t&amp;gt;(requiredExtensions.size()),
+    .ppEnabledExtensionNames = requiredExtensions.data(),
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;Create Debug Messenger RAII&lt;/h2&gt;
+&lt;p&gt;A debug messenger is a callback hook registered with the Vulkan loader + validation layers.
+Whenever something happens:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Validation error&lt;/li&gt;
+&lt;li&gt;Performance warning&lt;/li&gt;
+&lt;li&gt;General info&lt;/li&gt;
+&lt;li&gt;Incorrect API usage&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Vulkan calls your function.&lt;/p&gt;
+&lt;p&gt;:::Important
+This exists only in debug / development
+It has zero effect on rendering
+It does not exist in release builds unless you enable it
+:::&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;void VulkanEngine::create_debug_messenger_raii() {
+    constexpr DebugUtilsMessageSeverityFlagsEXT severityFlags(DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | DebugUtilsMessageSeverityFlagBitsEXT::eWarning | DebugUtilsMessageSeverityFlagBitsEXT::eError);
+    constexpr DebugUtilsMessageTypeFlagsEXT messageTypeFlags(DebugUtilsMessageTypeFlagBitsEXT::eGeneral | DebugUtilsMessageTypeFlagBitsEXT::ePerformance | DebugUtilsMessageTypeFlagBitsEXT::eValidation);
+    constexpr DebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfoEXT{.messageSeverity = severityFlags, .messageType = messageTypeFlags, .pfnUserCallback = &amp;amp;debugCallback};
+    this-&amp;gt;debug_messenger = this-&amp;gt;instance.createDebugUtilsMessengerEXT(debugUtilsMessengerCreateInfoEXT);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;1. debug messenger severity flags&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Severity flags&lt;/th&gt;
+&lt;th&gt;Notes&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eVerbose&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Very detailed info (often noisy)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eInfo&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Informational messages&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eWarning&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Valid but suspicious usage&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eError&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Spec violations or invalid calls&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h4&gt;Best practice&lt;/h4&gt;
+&lt;p&gt;During early learning:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;eVerbose | eInfo | eWarning | eError
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;During serious development:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;eWarning | eError
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;2. debug messenger type flags&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Message type flags&lt;/th&gt;
+&lt;th&gt;Notes&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eGeneral&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Non-specific messages&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;ePerformance&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Suboptimal usage&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eValidation&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;API misuse / spec violation&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3&gt;3. setup debug callback&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;VKAPI_ATTR Bool32 VKAPI_CALL debugCallback(const DebugUtilsMessageSeverityFlagBitsEXT severity, const DebugUtilsMessageTypeFlagsEXT type, const DebugUtilsMessengerCallbackDataEXT* pCallbackData, void*) {
+    if (severity == DebugUtilsMessageSeverityFlagBitsEXT::eError || severity == DebugUtilsMessageSeverityFlagBitsEXT::eWarning) {
+        std::cerr &amp;lt;&amp;lt; &quot;validation layer: type &quot; &amp;lt;&amp;lt; to_string(type) &amp;lt;&amp;lt; &quot; msg: &quot; &amp;lt;&amp;lt; pCallbackData-&amp;gt;pMessage &amp;lt;&amp;lt; std::endl;
+    }
+    return False;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;Create Surface RAII&lt;/h2&gt;
+&lt;p&gt;A Vulkan surface is the bridge between Vulkan and the window system.&lt;/p&gt;
+&lt;p&gt;This function does three logically separate things:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Configures GLFW window behavior&lt;/li&gt;
+&lt;li&gt;Creates and manages a native window&lt;/li&gt;
+&lt;li&gt;Creates a Vulkan surface bound to that window&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;void VulkanEngine::create_surface_raii() {
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    this-&amp;gt;window = std::shared_ptr&amp;lt;GLFWwindow&amp;gt;(glfwCreateWindow(1920, 1080, &quot;Vulkan Engine Window&quot;, nullptr, nullptr), [](GLFWwindow* ptr) {
+        glfwDestroyWindow(ptr);
+        glfwTerminate();
+    });
+    glfwSetWindowUserPointer(this-&amp;gt;window.get(), this);
+    glfwSetFramebufferSizeCallback(this-&amp;gt;window.get(), framebufferResizeCallback);
+    VkSurfaceKHR _surface;
+    if (glfwCreateWindowSurface(*this-&amp;gt;instance, this-&amp;gt;window.get(), nullptr, &amp;amp;_surface) != 0) throw std::runtime_error(&quot;failed to create window surface!&quot;);
+    this-&amp;gt;surface = raii::SurfaceKHR(this-&amp;gt;instance, _surface);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;1. configure glfw window behavior&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;GLFW Window Hint&lt;/th&gt;
+&lt;th&gt;Values&lt;/th&gt;
+&lt;th&gt;Notes&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GLFW_CLIENT_API&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GLFW_NO_API&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Tells GLFW: “Do NOT create an OpenGL / OpenGL ES context”. This is &amp;lt;ins&amp;gt;&lt;strong&gt;mandatory&lt;/strong&gt;&amp;lt;/ins&amp;gt; for Vulkan.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GLFW_RESIZABLE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GLFW_TRUE&lt;/code&gt;/&lt;code&gt;GLFW_FALSE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Allows the window to be resized by the user&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;pre&gt;&lt;code&gt;glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+this-&amp;gt;window = std::shared_ptr&amp;lt;GLFWwindow&amp;gt;(glfwCreateWindow(1920, 1080, &quot;Vulkan Engine Window&quot;, nullptr, nullptr), [this](GLFWwindow* ptr) {
+    glfwDestroyWindow(this-&amp;gt;window.get());
+    glfwTerminate();
+    this-&amp;gt;window.reset();
+});
+glfwSetWindowUserPointer(this-&amp;gt;window.get(), this);
+glfwSetFramebufferSizeCallback(this-&amp;gt;window.get(), framebufferResizeCallback);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;2. framebuffer resize callback&lt;/h3&gt;
+&lt;p&gt;Registers a function called when the framebuffer size changes&lt;/p&gt;
+&lt;p&gt;:::important&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Window size ≠ Framebuffer size&lt;/li&gt;
+&lt;li&gt;On HiDPI displays, framebuffer can be larger
+:::&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+    auto app                = reinterpret_cast&amp;lt;VulkanEngine*&amp;gt;(glfwGetWindowUserPointer(window));
+    app-&amp;gt;framebufferResized = true;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;3. create Vulkan surface&lt;/h3&gt;
+&lt;h4&gt;What happens here&lt;/h4&gt;
+&lt;p&gt;GLFW internally:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Detects platform (Win32 / X11 / Wayland / Cocoa)&lt;/li&gt;
+&lt;li&gt;Calls the correct Vulkan function:&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;vkCreateWin32SurfaceKHR&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;vkCreateXcbSurfaceKHR&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;etc.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;VkSurfaceKHR _surface;
+if (glfwCreateWindowSurface(*this-&amp;gt;instance, this-&amp;gt;window.get(), nullptr, &amp;amp;_surface) != 0) throw std::runtime_error(&quot;failed to create window surface!&quot;);
+this-&amp;gt;surface = raii::SurfaceKHR(this-&amp;gt;instance, _surface);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;Pick Physical Device RAII&lt;/h2&gt;
+&lt;p&gt;In Vulkan:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Physical device = actual GPU hardware (or software implementation)&lt;/li&gt;
+&lt;li&gt;You are not creating anything yet&lt;/li&gt;
+&lt;li&gt;You are only deciding: “Which GPU is capable of running my engine?”&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;void VulkanEngine::pick_physical_device_raii() {
+    std::vector&amp;lt;raii::PhysicalDevice&amp;gt; devices = instance.enumeratePhysicalDevices();
+    const auto devIter                        = std::ranges::find_if(devices, [&amp;amp;](auto const&amp;amp; device) {
+        // Check if the device supports the Vulkan 1.3 API version
+        const bool supportsVulkan1_3 = device.getProperties().apiVersion &amp;gt;= VK_API_VERSION_1_3;
+
+        // Check if any of the queue families support graphics operations
+        auto queueFamilies          = device.getQueueFamilyProperties();
+        const bool supportsGraphics = std::ranges::any_of(queueFamilies, [](auto const&amp;amp; qfp) { return !!(qfp.queueFlags &amp;amp; QueueFlagBits::eGraphics); });
+
+        // Check if all required device extensions are available
+        auto availableDeviceExtensions = device.enumerateDeviceExtensionProperties();
+        const bool supportsAllRequiredExtensions =
+            std::ranges::all_of(this-&amp;gt;info.required_device_extensions, [&amp;amp;availableDeviceExtensions](auto const&amp;amp; requiredDeviceExtension) { return std::ranges::any_of(availableDeviceExtensions, [requiredDeviceExtension](auto const&amp;amp; availableDeviceExtension) { return strcmp(availableDeviceExtension.extensionName, requiredDeviceExtension) == 0; }); });
+
+        auto features = device.template getFeatures2&amp;lt;PhysicalDeviceFeatures2, PhysicalDeviceVulkan11Features, PhysicalDeviceVulkan13Features, PhysicalDeviceExtendedDynamicStateFeaturesEXT&amp;gt;();
+        const bool supportsRequiredFeatures =
+            features.template get&amp;lt;PhysicalDeviceVulkan11Features&amp;gt;().shaderDrawParameters &amp;amp;&amp;amp; features.template get&amp;lt;PhysicalDeviceVulkan13Features&amp;gt;().synchronization2 &amp;amp;&amp;amp; features.template get&amp;lt;PhysicalDeviceVulkan13Features&amp;gt;().dynamicRendering &amp;amp;&amp;amp; features.template get&amp;lt;PhysicalDeviceExtendedDynamicStateFeaturesEXT&amp;gt;().extendedDynamicState;
+
+        return supportsVulkan1_3 &amp;amp;&amp;amp; supportsGraphics &amp;amp;&amp;amp; supportsAllRequiredExtensions &amp;amp;&amp;amp; supportsRequiredFeatures;
+    });
+    if (devIter != devices.end()) {
+        this-&amp;gt;physical_device = *devIter;
+    } else {
+        throw std::runtime_error(&quot;failed to find a suitable GPU!&quot;);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;1. enumerate physical devices&lt;/h3&gt;
+&lt;h4&gt;What this does&lt;/h4&gt;
+&lt;p&gt;Asks the Vulkan loader: “Give me all GPUs visible to this Vulkan instance.”&lt;/p&gt;
+&lt;p&gt;This may include:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Discrete GPU (RTX / RX)&lt;/li&gt;
+&lt;li&gt;Integrated GPU (Intel / AMD iGPU)&lt;/li&gt;
+&lt;li&gt;Software rasterizer (llvmpipe)&lt;/li&gt;
+&lt;li&gt;Remote / virtual GPUs&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;std::vector&amp;lt;raii::PhysicalDevice&amp;gt; devices = instance.enumeratePhysicalDevices();
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;2. check physical device suitability&lt;/h3&gt;
+&lt;h4&gt;What this means&lt;/h4&gt;
+&lt;p&gt;You iterate over all GPUs and return the first one that satisfies your requirements.&lt;/p&gt;
+&lt;p&gt;:::caution&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Device priority is implicit&lt;/li&gt;
+&lt;li&gt;The enumeration order is driver-defined&lt;/li&gt;
+&lt;li&gt;Many engines later score devices instead of stopping at the first match
+:::&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;const auto devIter                        = std::ranges::find_if(devices, [&amp;amp;](auto const&amp;amp; device) {
+    // Check if the device supports the Vulkan 1.3 API version
+    const bool supportsVulkan1_3 = device.getProperties().apiVersion &amp;gt;= VK_API_VERSION_1_3;
+
+    // Check if any of the queue families support graphics operations
+    auto queueFamilies          = device.getQueueFamilyProperties();
+    const bool supportsGraphics = std::ranges::any_of(queueFamilies, [](auto const&amp;amp; qfp) { return !!(qfp.queueFlags &amp;amp; QueueFlagBits::eGraphics); });
+
+    // Check if all required device extensions are available
+    auto availableDeviceExtensions = device.enumerateDeviceExtensionProperties();
+    const bool supportsAllRequiredExtensions =
+        std::ranges::all_of(this-&amp;gt;info.required_device_extensions, [&amp;amp;availableDeviceExtensions](auto const&amp;amp; requiredDeviceExtension) { return std::ranges::any_of(availableDeviceExtensions, [requiredDeviceExtension](auto const&amp;amp; availableDeviceExtension) { return strcmp(availableDeviceExtension.extensionName, requiredDeviceExtension) == 0; }); });
+
+    auto features = device.template getFeatures2&amp;lt;PhysicalDeviceFeatures2, PhysicalDeviceVulkan11Features, PhysicalDeviceVulkan13Features, PhysicalDeviceExtendedDynamicStateFeaturesEXT&amp;gt;();
+    const bool supportsRequiredFeatures =
+        features.template get&amp;lt;PhysicalDeviceVulkan11Features&amp;gt;().shaderDrawParameters &amp;amp;&amp;amp; features.template get&amp;lt;PhysicalDeviceVulkan13Features&amp;gt;().synchronization2 &amp;amp;&amp;amp; features.template get&amp;lt;PhysicalDeviceVulkan13Features&amp;gt;().dynamicRendering &amp;amp;&amp;amp; features.template get&amp;lt;PhysicalDeviceExtendedDynamicStateFeaturesEXT&amp;gt;().extendedDynamicState;
+
+    return supportsVulkan1_3 &amp;amp;&amp;amp; supportsGraphics &amp;amp;&amp;amp; supportsAllRequiredExtensions &amp;amp;&amp;amp; supportsRequiredFeatures;
+});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;3. check Vulkan API version support&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;// Check if the device supports the Vulkan 1.3 API version
+const bool supportsVulkan1_3 = device.getProperties().apiVersion &amp;gt;= VK_API_VERSION_1_3;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;4. check graphics queue family support&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Queue Flags&lt;/th&gt;
+&lt;th&gt;Notes&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eGraphics&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;To render anything, you need at least one graphics queue.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eCompute&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eTransfer&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eSparseBinding&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eProtected&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eVideoDecodeKHR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eVideoEncodeKHR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eOpticalFlowNV&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eDataGraphARM&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;:spoiler[(TODO: Fill here)]&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;pre&gt;&lt;code&gt;// Check if any of the queue families support graphics operations
+auto queueFamilies          = device.getQueueFamilyProperties();
+const bool supportsGraphics = std::ranges::any_of(queueFamilies, [](auto const&amp;amp; qfp) { return !!(qfp.queueFlags &amp;amp; QueueFlagBits::eGraphics); });
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;5. check device extension support&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;// Check if all required device extensions are available
+auto availableDeviceExtensions = device.enumerateDeviceExtensionProperties();
+const bool supportsAllRequiredExtensions =
+    std::ranges::all_of(this-&amp;gt;info.required_device_extensions, [&amp;amp;availableDeviceExtensions](auto const&amp;amp; requiredDeviceExtension) { return std::ranges::any_of(availableDeviceExtensions, [requiredDeviceExtension](auto const&amp;amp; availableDeviceExtension) { return strcmp(availableDeviceExtension.extensionName, requiredDeviceExtension) == 0; }); });
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;6. check required features support&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;auto features = device.template getFeatures2&amp;lt;PhysicalDeviceFeatures2, PhysicalDeviceVulkan11Features, PhysicalDeviceVulkan13Features, PhysicalDeviceExtendedDynamicStateFeaturesEXT&amp;gt;();
+const bool supportsRequiredFeatures =
+    features.template get&amp;lt;PhysicalDeviceVulkan11Features&amp;gt;().shaderDrawParameters &amp;amp;&amp;amp; features.template get&amp;lt;PhysicalDeviceVulkan13Features&amp;gt;().synchronization2 &amp;amp;&amp;amp; features.template get&amp;lt;PhysicalDeviceVulkan13Features&amp;gt;().dynamicRendering &amp;amp;&amp;amp; features.template get&amp;lt;PhysicalDeviceExtendedDynamicStateFeaturesEXT&amp;gt;().extendedDynamicState;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;Difference between getFeatures and getFeatures2&lt;/h4&gt;
+&lt;p&gt;Short answer (intuition first)&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;getFeatures(): → Old, flat, limited, legacy-style feature query&lt;/li&gt;
+&lt;li&gt;getFeatures2(): → Modern, extensible, future-proof feature query&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In modern Vulkan (≥ 1.1, especially 1.3 / 1.4),
+👉 you should almost always use getFeatures2().&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;Create Logical Device RAII&lt;/h2&gt;
+&lt;p&gt;A physical device is “a GPU”.&lt;/p&gt;
+&lt;p&gt;A logical device is “your connection to that GPU”, with specific:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;queues you will use&lt;/li&gt;
+&lt;li&gt;features you want enabled&lt;/li&gt;
+&lt;li&gt;device extensions you need enabled&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This function does four things:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Find a queue family that supports graphics + present&lt;/li&gt;
+&lt;li&gt;Build a feature enable chain (pNext)&lt;/li&gt;
+&lt;li&gt;Create the logical device&lt;/li&gt;
+&lt;li&gt;Retrieve a queue handle from that device&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;void VulkanEngine::create_logical_device_raii() {
+    std::vector&amp;lt;QueueFamilyProperties&amp;gt; queueFamilyProperties = this-&amp;gt;physical_device.getQueueFamilyProperties();
+
+    // get the first index into queueFamilyProperties which supports both graphics and present
+    for (uint32_t qfpIndex = 0; qfpIndex &amp;lt; queueFamilyProperties.size(); qfpIndex++) {
+        if (queueFamilyProperties[qfpIndex].queueFlags &amp;amp; QueueFlagBits::eGraphics &amp;amp;&amp;amp; this-&amp;gt;physical_device.getSurfaceSupportKHR(qfpIndex, *this-&amp;gt;surface)) {
+            // found a queue family that supports both graphics and present
+            this-&amp;gt;queueIndex = qfpIndex;
+            break;
+        }
+    }
+    if (this-&amp;gt;queueIndex == ~0) throw std::runtime_error(&quot;Could not find a queue for graphics and present -&amp;gt; terminating&quot;);
+
+    // query for Vulkan 1.3 features
+    StructureChain&amp;lt;PhysicalDeviceFeatures2, PhysicalDeviceVulkan11Features, PhysicalDeviceVulkan13Features, PhysicalDeviceExtendedDynamicStateFeaturesEXT&amp;gt; featureChain = {
+        {}, // vk::PhysicalDeviceFeatures2
+        {.shaderDrawParameters = true}, // vk::PhysicalDeviceVulkan11Features
+        {.synchronization2 = true, .dynamicRendering = true}, // vk::PhysicalDeviceVulkan13Features
+        {.extendedDynamicState = true}, // vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT
+    };
+
+    // create a Device
+    float queuePriority = 0.5f;
+    DeviceQueueCreateInfo deviceQueueCreateInfo{
+        .queueFamilyIndex = this-&amp;gt;queueIndex,
+        .queueCount       = 1,
+        .pQueuePriorities = &amp;amp;queuePriority,
+    };
+    DeviceCreateInfo deviceCreateInfo{
+        .pNext                   = &amp;amp;featureChain.get&amp;lt;PhysicalDeviceFeatures2&amp;gt;(),
+        .queueCreateInfoCount    = 1,
+        .pQueueCreateInfos       = &amp;amp;deviceQueueCreateInfo,
+        .enabledExtensionCount   = static_cast&amp;lt;uint32_t&amp;gt;(this-&amp;gt;info.required_device_extensions.size()),
+        .ppEnabledExtensionNames = this-&amp;gt;info.required_device_extensions.data(),
+    };
+
+    this-&amp;gt;device = raii::Device(this-&amp;gt;physical_device, deviceCreateInfo);
+    this-&amp;gt;queue  = raii::Queue(this-&amp;gt;device, this-&amp;gt;queueIndex, 0);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;1. find graphics + present queue family&lt;/h3&gt;
+&lt;p&gt;Find a queue family that supports both graphics and presentation.&lt;/p&gt;
+&lt;p&gt;:::Important&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Some GPUs/drivers expose a graphics queue that cannot present to a given surface.&lt;/li&gt;
+&lt;li&gt;Present support is surface-dependent, not just device-dependent.
+:::&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;std::vector&amp;lt;QueueFamilyProperties&amp;gt; queueFamilyProperties = this-&amp;gt;physical_device.getQueueFamilyProperties();
+
+// get the first index into queueFamilyProperties which supports both graphics and present
+for (uint32_t qfpIndex = 0; qfpIndex &amp;lt; queueFamilyProperties.size(); qfpIndex++) {
+    if (queueFamilyProperties[qfpIndex].queueFlags &amp;amp; QueueFlagBits::eGraphics &amp;amp;&amp;amp; this-&amp;gt;physical_device.getSurfaceSupportKHR(qfpIndex, *this-&amp;gt;surface)) {
+        // found a queue family that supports both graphics and present
+        this-&amp;gt;queueIndex = qfpIndex;
+        break;
+    }
+}
+if (this-&amp;gt;queueIndex == ~0) throw std::runtime_error(&quot;Could not find a queue for graphics and present -&amp;gt; terminating&quot;);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;2. enabling device features&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Device Features&lt;/th&gt;
+&lt;th&gt;Notes&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;PhysicalDeviceFeatures2&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;The Vulkan 1.0 feature set. You left it {} (all false). That’s fine if you don’t need any Vulkan 1.0-only features.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;PhysicalDeviceVulkan11Features&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;shaderDrawParameters = true&lt;/code&gt;: This enables shader built-ins like gl_DrawID / gl_BaseInstance (depending on stage/API), used heavily for modern instancing and multi-draw style rendering.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;PhysicalDeviceVulkan13Features&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;synchronization2 = true&lt;/code&gt;: Enables the modern synchronization API (clearer and less error-prone). &amp;lt;br/&amp;gt;  &lt;code&gt;dynamicRendering = true&lt;/code&gt;: Enables rendering without classic render passes/framebuffers (very modern, very common now).&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;PhysicalDeviceExtendedDynamicStateFeaturesEXT&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;extendedDynamicState = true&lt;/code&gt;: Allows more pipeline state to be dynamic (reduces pipeline count, makes engine more flexible).&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;:::Important
+You must only enable features that you already confirmed are supported (you did that earlier in
+&lt;code&gt;pick_physical_device_raii()&lt;/code&gt;).
+:::&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;StructureChain&amp;lt;PhysicalDeviceFeatures2, PhysicalDeviceVulkan11Features, PhysicalDeviceVulkan13Features, PhysicalDeviceExtendedDynamicStateFeaturesEXT&amp;gt; featureChain = {
+    {}, // vk::PhysicalDeviceFeatures2
+    {.shaderDrawParameters = true}, // vk::PhysicalDeviceVulkan11Features
+    {.synchronization2 = true, .dynamicRendering = true}, // vk::PhysicalDeviceVulkan13Features
+    {.extendedDynamicState = true}, // vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;3. create queue info&lt;/h3&gt;
+&lt;p&gt;When creating a device, you must specify what queues you want from each family.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;queueFamilyIndex&lt;/code&gt;: which family&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;queueCount&lt;/code&gt;: how many queues from that family&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;pQueuePriorities&lt;/code&gt;: array of floats in &lt;code&gt;[0,1]&lt;/code&gt;, one per queue&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;What priority really does&lt;/h4&gt;
+&lt;p&gt;It is only meaningful if:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;multiple queues compete for scheduling&lt;/li&gt;
+&lt;li&gt;the driver actually uses this hint&lt;/li&gt;
+&lt;li&gt;Many drivers mostly ignore it, but it must be provided.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;float queuePriority = 0.5f;
+DeviceQueueCreateInfo deviceQueueCreateInfo{
+    .queueFamilyIndex = this-&amp;gt;queueIndex,
+    .queueCount       = 1,
+    .pQueuePriorities = &amp;amp;queuePriority,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;4. create device create info&lt;/h3&gt;
+&lt;h4&gt;&lt;code&gt;.pNext&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;This points Vulkan to the feature chain root, which links to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Vulkan 1.1 features&lt;/li&gt;
+&lt;li&gt;Vulkan 1.3 features&lt;/li&gt;
+&lt;li&gt;EXT features&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So you’re telling Vulkan: “Create my logical device with these features enabled”.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;DeviceCreateInfo deviceCreateInfo{
+    .pNext                   = &amp;amp;featureChain.get&amp;lt;PhysicalDeviceFeatures2&amp;gt;(),
+    .queueCreateInfoCount    = 1,
+    .pQueueCreateInfos       = &amp;amp;deviceQueueCreateInfo,
+    .enabledExtensionCount   = static_cast&amp;lt;uint32_t&amp;gt;(this-&amp;gt;info.required_device_extensions.size()),
+    .ppEnabledExtensionNames = this-&amp;gt;info.required_device_extensions.data(),
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;Create Swapchain RAII&lt;/h2&gt;
+&lt;p&gt;A swapchain is a queue of images owned by the presentation engine (the “screen system”).
+Your renderer:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;acquires one image from the swapchain,&lt;/li&gt;
+&lt;li&gt;renders into it,&lt;/li&gt;
+&lt;li&gt;presents it to the window.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;So swapchain creation is basically: “Negotiate with the OS/window system: format, size, number of images, present mode,
+and usage.”&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;void VulkanEngine::create_swapchain_raii() {
+    auto surfaceCapabilities = this-&amp;gt;physical_device.getSurfaceCapabilitiesKHR(*this-&amp;gt;surface);
+
+    int width, height;
+    glfwGetFramebufferSize(window.get(), &amp;amp;width, &amp;amp;height);
+    this-&amp;gt;swapchain_extent = surfaceCapabilities.currentExtent.width == 0xFFFFFFFF ? Extent2D{
+                                                                                         std::clamp&amp;lt;uint32_t&amp;gt;(width, surfaceCapabilities.minImageExtent.width, surfaceCapabilities.maxImageExtent.width),
+                                                                                         std::clamp&amp;lt;uint32_t&amp;gt;(height, surfaceCapabilities.minImageExtent.height, surfaceCapabilities.maxImageExtent.height),
+                                                                                     }:surfaceCapabilities.currentExtent;
+
+    const std::vector&amp;lt;SurfaceFormatKHR&amp;gt;&amp;amp; availableFormats = this-&amp;gt;physical_device.getSurfaceFormatsKHR(*this-&amp;gt;surface);
+    const auto formatIt                                   = std::ranges::find_if(availableFormats, [](const auto&amp;amp; format) { return format.format == Format::eB8G8R8A8Srgb &amp;amp;&amp;amp; format.colorSpace == ColorSpaceKHR::eSrgbNonlinear; });
+    this-&amp;gt;swapchain_surface_format                        = formatIt != availableFormats.end() ? *formatIt : availableFormats[0];
+
+    auto minImageCount = std::max(3u, surfaceCapabilities.minImageCount);
+    if (0 &amp;lt; surfaceCapabilities.maxImageCount &amp;amp;&amp;amp; surfaceCapabilities.maxImageCount &amp;lt; minImageCount) minImageCount = surfaceCapabilities.maxImageCount;
+
+    const SwapchainCreateInfoKHR swapChainCreateInfo{.surface = *this-&amp;gt;surface,
+        .minImageCount                                        = minImageCount,
+        .imageFormat                                          = this-&amp;gt;swapchain_surface_format.format,
+        .imageColorSpace                                      = this-&amp;gt;swapchain_surface_format.colorSpace,
+        .imageExtent                                          = this-&amp;gt;swapchain_extent,
+        .imageArrayLayers                                     = 1,
+        .imageUsage                                           = ImageUsageFlagBits::eColorAttachment,
+        .imageSharingMode                                     = SharingMode::eExclusive,
+        .preTransform                                         = surfaceCapabilities.currentTransform,
+        .compositeAlpha                                       = CompositeAlphaFlagBitsKHR::eOpaque,
+        .presentMode                                          = std::ranges::any_of(this-&amp;gt;physical_device.getSurfacePresentModesKHR(*this-&amp;gt;surface), [](const PresentModeKHR value) { return PresentModeKHR::eMailbox == value; }) ? PresentModeKHR::eMailbox : PresentModeKHR::eFifo,
+        .clipped                                              = true};
+
+    this-&amp;gt;swapchain        = raii::SwapchainKHR(device, swapChainCreateInfo);
+    this-&amp;gt;swapchain_images = this-&amp;gt;swapchain.getImages();
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;1. query surface capabilities&lt;/h3&gt;
+&lt;p&gt;This returns &lt;code&gt;vk::SurfaceCapabilitiesKHR&lt;/code&gt;, which tells you what the surface supports, such as:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;minImageCount&lt;/code&gt;, &lt;code&gt;maxImageCount&lt;/code&gt;: Limits on swapchain image count.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;currentExtent&lt;/code&gt;: The surface’s “preferred” or fixed resolution.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;minImageExtent&lt;/code&gt;, &lt;code&gt;maxImageExtent&lt;/code&gt;: Allowed extent range (if extent is flexible).&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;currentTransform&lt;/code&gt;: Whether the surface applies rotation/transforms (mobile can rotate).&lt;/li&gt;
+&lt;li&gt;supported usage flags (in other fields / related queries)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;auto surfaceCapabilities = this-&amp;gt;physical_device.getSurfaceCapabilitiesKHR(*this-&amp;gt;surface);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;2. get framebuffer size from GLFW&lt;/h3&gt;
+&lt;p&gt;This gets the actual pixel size of the framebuffer, not the logical window size.
+On HiDPI screens, framebuffer size can be larger than window size.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;int width, height;
+glfwGetFramebufferSize(window.get(), &amp;amp;width, &amp;amp;height);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;3. determine swapchain extent&lt;/h3&gt;
+&lt;p&gt;The Vulkan rule is:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;If &lt;code&gt;currentExtent.width != UINT32_MAX&lt;/code&gt;: the surface has a fixed extent, you must use &lt;code&gt;currentExtent&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;If &lt;code&gt;currentExtent.width == UINT32_MAX&lt;/code&gt;: you choose the extent, clamped to [&lt;code&gt;minImageExtent&lt;/code&gt;, &lt;code&gt;maxImageExtent&lt;/code&gt;].&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;this-&amp;gt;swapchain_extent = surfaceCapabilities.currentExtent.width == 0xFFFFFFFF ? Extent2D{
+                                                                                     std::clamp&amp;lt;uint32_t&amp;gt;(width, surfaceCapabilities.minImageExtent.width, surfaceCapabilities.maxImageExtent.width),
+                                                                                     std::clamp&amp;lt;uint32_t&amp;gt;(height, surfaceCapabilities.minImageExtent.height, surfaceCapabilities.maxImageExtent.height),
+                                                                                 }:surfaceCapabilities.currentExtent;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;4. choose swapchain surface format&lt;/h3&gt;
+&lt;h4&gt;What a “surface format” means&lt;/h4&gt;
+&lt;p&gt;It’s a pair:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;format&lt;/code&gt;: pixel layout (e.g. BGRA8)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;colorSpace&lt;/code&gt;: how the presentation engine interprets it (often sRGB nonlinear)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;Your preference&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;eB8G8R8A8Srgb&lt;/code&gt; + &lt;code&gt;eSrgbNonlinear&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;This is a very common “good default” because:&lt;/p&gt;
+&lt;p&gt;it supports correct gamma / sRGB output&lt;/p&gt;
+&lt;p&gt;it is widely supported&lt;/p&gt;
+&lt;h4&gt;Fallback&lt;/h4&gt;
+&lt;p&gt;If not available, you take the first supported format. That is typical.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const std::vector&amp;lt;SurfaceFormatKHR&amp;gt;&amp;amp; availableFormats = this-&amp;gt;physical_device.getSurfaceFormatsKHR(*this-&amp;gt;surface);
+const auto formatIt                                   = std::ranges::find_if(availableFormats, [](const auto&amp;amp; format) { return format.format == Format::eB8G8R8A8Srgb &amp;amp;&amp;amp; format.colorSpace == ColorSpaceKHR::eSrgbNonlinear; });
+this-&amp;gt;swapchain_surface_format                        = formatIt != availableFormats.end() ? *formatIt : availableFormats[0];
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;5. determine swapchain image count (triple buffering)&lt;/h3&gt;
+&lt;h4&gt;What this does&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;You want at least 3 images (triple buffering).&lt;/li&gt;
+&lt;li&gt;But the surface might require at least some minimum.&lt;/li&gt;
+&lt;li&gt;And it might cap the maximum.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;auto minImageCount = std::max(3u, surfaceCapabilities.minImageCount);
+if (0 &amp;lt; surfaceCapabilities.maxImageCount &amp;amp;&amp;amp; surfaceCapabilities.maxImageCount &amp;lt; minImageCount) minImageCount = surfaceCapabilities.maxImageCount;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;6. build SwapchainCreateInfoKHR&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;surface&lt;/code&gt;: The window surface you’re presenting to.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;minImageCount&lt;/code&gt; How many images in the swapchain queue. More images can reduce stalls.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;imageFormat&lt;/code&gt; and &lt;code&gt;imageColorSpace&lt;/code&gt;: Must match one of the supported surface formats you queried.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;imageExtent&lt;/code&gt;: Resolution of swapchain images, usually matches the window framebuffer size.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;imageArrayLayers = 1&lt;/code&gt;: 1 for normal 2D rendering. Use &amp;gt;1 for stereoscopic / VR arrays.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;imageUsage = eColorAttachment&lt;/code&gt;: Means you will render directly into swapchain images as color attachments.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Common additions you might want later:
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;eTransferDst&lt;/code&gt; if you plan to blit/copy into swapchain images&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;eStorage&lt;/code&gt; if you plan compute writes (rare for swapchain)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;imageSharingMode = eExclusive&lt;/code&gt;: Best performance when a single queue family owns the images.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;If your graphics queue family differs from present queue family, you must use:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;eConcurrent&lt;/code&gt; with both family indices&lt;/li&gt;
+&lt;li&gt;(Your engine currently uses a single graphics+present family, so eExclusive is correct.)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;preTransform = currentTransform&lt;/code&gt;: If the surface wants a transform (rotation), you accept it. Some engines prefer
+eIdentity if supported, but your choice is safe.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;compositeAlpha = eOpaque&lt;/code&gt;: How alpha blending works with the window system. eOpaque is usually supported and
+simplest.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;const SwapchainCreateInfoKHR swapChainCreateInfo{.surface = *this-&amp;gt;surface,
+    .minImageCount                                        = minImageCount,
+    .imageFormat                                          = this-&amp;gt;swapchain_surface_format.format,
+    .imageColorSpace                                      = this-&amp;gt;swapchain_surface_format.colorSpace,
+    .imageExtent                                          = this-&amp;gt;swapchain_extent,
+    .imageArrayLayers                                     = 1,
+    .imageUsage                                           = ImageUsageFlagBits::eColorAttachment,
+    .imageSharingMode                                     = SharingMode::eExclusive,
+    .preTransform                                         = surfaceCapabilities.currentTransform,
+    .compositeAlpha                                       = CompositeAlphaFlagBitsKHR::eOpaque,
+    .presentMode                                          = std::ranges::any_of(this-&amp;gt;physical_device.getSurfacePresentModesKHR(*this-&amp;gt;surface), [](const PresentModeKHR value) { return PresentModeKHR::eMailbox == value; }) ? PresentModeKHR::eMailbox : PresentModeKHR::eFifo,
+    .clipped                                              = true};
+
+this-&amp;gt;swapchain        = raii::SwapchainKHR(device, swapChainCreateInfo);
+this-&amp;gt;swapchain_images = this-&amp;gt;swapchain.getImages();
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;Create Image Views RAII&lt;/h2&gt;
+&lt;p&gt;A swapchain image (&lt;code&gt;VkImage&lt;/code&gt;) is just raw image memory owned by the presentation engine.&lt;/p&gt;
+&lt;p&gt;You cannot:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;bind it as a framebuffer attachment&lt;/li&gt;
+&lt;li&gt;sample from it&lt;/li&gt;
+&lt;li&gt;write to it in a pipeline&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;…until you create an image view.&lt;/p&gt;
+&lt;p&gt;So this function’s job is: “Create a view for each swapchain image so shaders and render operations can access them.”&lt;/p&gt;
+&lt;h4&gt;What an image view actually is (important concept)&lt;/h4&gt;
+&lt;p&gt;Think of:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;VkImage&lt;/code&gt;: raw storage (like a buffer of pixels)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;VkImageView&lt;/code&gt;: interpretation of that storage&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;An image view defines:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;how many dimensions (1D / 2D / 3D)&lt;/li&gt;
+&lt;li&gt;which format&lt;/li&gt;
+&lt;li&gt;which mip levels&lt;/li&gt;
+&lt;li&gt;which array layers&lt;/li&gt;
+&lt;li&gt;which aspects (color / depth / stencil)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In Vulkan, you almost always use image views, not images directly.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;void VulkanEngine::create_swapchain_image_views_raii() {
+    ImageViewCreateInfo imageViewCreateInfo{
+        .viewType         = ImageViewType::e2D,
+        .format           = this-&amp;gt;swapchain_surface_format.format,
+        .subresourceRange = {ImageAspectFlagBits::eColor, 0, 1, 0, 1},
+    };
+    for (const auto&amp;amp; image : this-&amp;gt;swapchain_images) {
+        imageViewCreateInfo.image = image;
+        this-&amp;gt;swapchain_image_views.emplace_back(device, imageViewCreateInfo);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;1. build image view&lt;/h3&gt;
+&lt;h4&gt;&lt;code&gt;viewType = e2D&lt;/code&gt;: This tells Vulkan how to interpret the image.&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;Swapchain images are 2D images&lt;/li&gt;
+&lt;li&gt;So &lt;code&gt;e2D&lt;/code&gt; is always correct here&lt;/li&gt;
+&lt;li&gt;Other possible values:
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;e2DArray&lt;/code&gt; (stereo, VR)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;eCube&lt;/code&gt; (cubemaps)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;e3D&lt;/code&gt; (volume textures)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;&lt;code&gt;format&lt;/code&gt;&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;This must:
+&lt;ul&gt;
+&lt;li&gt;match the swapchain image format&lt;/li&gt;
+&lt;li&gt;be compatible with the image&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;For swapchain images:
+&lt;ul&gt;
+&lt;li&gt;You must use exactly the same format you selected during swapchain creation&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;If this doesn’t match:
+&lt;ul&gt;
+&lt;li&gt;Image view creation fails&lt;/li&gt;
+&lt;li&gt;Or validation layers complain&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;&lt;code&gt;subresourceRange&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;This is one of the most important parts.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;subresourceRange&lt;/code&gt; tells Vulkan which part of the image this view exposes.&lt;/p&gt;
+&lt;h5&gt;What is a “subresource”?&lt;/h5&gt;
+&lt;p&gt;A Vulkan image can have:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;multiple mip levels&lt;/li&gt;
+&lt;li&gt;multiple array layers&lt;/li&gt;
+&lt;li&gt;multiple aspects (color / depth / stencil)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;Aspect mask&lt;/h4&gt;
+&lt;p&gt;This says:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;This image view accesses the color aspect&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Correct because:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Swapchain images are color images&lt;/li&gt;
+&lt;li&gt;They are not depth/stencil images&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;Base mip level &amp;amp; level count&lt;/h4&gt;
+&lt;p&gt;This means:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Use mip level 0&lt;/li&gt;
+&lt;li&gt;Only one mip level exists&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Swapchain images never have mipmaps.&lt;/p&gt;
+&lt;h4&gt;Base array layer &amp;amp; layer count&lt;/h4&gt;
+&lt;p&gt;This means:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Use the first array layer&lt;/li&gt;
+&lt;li&gt;Only one layer exists&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Again, swapchain images are single-layer.&lt;/p&gt;
+&lt;p&gt;:::Important&lt;/p&gt;
+&lt;h4&gt;Lifetime rules (very important)&lt;/h4&gt;
+&lt;p&gt;The lifetime dependency is:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;VkImage (swapchain-owned)
+    ↓
+VkImageView (you created)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Rules:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Image views must be destroyed before the swapchain&lt;/li&gt;
+&lt;li&gt;Swapchain must exist as long as image views exist&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Your RAII ordering must reflect this.&lt;/p&gt;
+&lt;h4&gt;Why reuse ImageViewCreateInfo is fine&lt;/h4&gt;
+&lt;p&gt;You reuse the same &lt;code&gt;ImageViewCreateInfo&lt;/code&gt; object and only change &lt;code&gt;.image&lt;/code&gt;.
+Because all swapchain images share:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;format&lt;/li&gt;
+&lt;li&gt;extent&lt;/li&gt;
+&lt;li&gt;mip count&lt;/li&gt;
+&lt;li&gt;layer count
+:::&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;ImageViewCreateInfo imageViewCreateInfo{
+    .viewType         = ImageViewType::e2D,
+    .format           = this-&amp;gt;swapchain_surface_format.format,
+    .subresourceRange = {ImageAspectFlagBits::eColor, 0, 1, 0, 1},
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;Create Command Pool RAII&lt;/h2&gt;
+&lt;p&gt;In Vulkan, command buffers do not own their memory.&lt;/p&gt;
+&lt;p&gt;Instead:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A command pool owns the memory used to record commands&lt;/li&gt;
+&lt;li&gt;Command buffers are allocated from a command pool&lt;/li&gt;
+&lt;li&gt;Resetting or destroying a command pool affects all command buffers allocated from it&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Mental model:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Command pool = memory arena&lt;/li&gt;
+&lt;li&gt;Command buffers = objects allocated from that arena&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This function:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Specifies how command buffers allocated from this pool can be reset&lt;/li&gt;
+&lt;li&gt;Associates the pool with a specific queue family&lt;/li&gt;
+&lt;li&gt;Creates the pool using RAII&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;It does not:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Allocate command buffers&lt;/li&gt;
+&lt;li&gt;Record commands&lt;/li&gt;
+&lt;li&gt;Submit commands&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;&lt;code&gt;queueFamilyIndex&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;This tells Vulkan: “All command buffers allocated from this pool will be submitted to queues from this queue family.”&lt;/p&gt;
+&lt;p&gt;Why this is required?&lt;/p&gt;
+&lt;p&gt;Vulkan enforces:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A command pool is tied to one queue family&lt;/li&gt;
+&lt;li&gt;Command buffers allocated from it must be submitted to a queue belonging to the same family&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Consequence&lt;/p&gt;
+&lt;p&gt;If you later add:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;a compute-only queue family&lt;/li&gt;
+&lt;li&gt;a transfer-only queue family&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;You must create separate command pools for them.&lt;/p&gt;
+&lt;h4&gt;&lt;code&gt;flags = eResetCommandBuffer&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;This flag controls how command buffers can be reset.&lt;/p&gt;
+&lt;p&gt;With &lt;code&gt;eResetCommandBuffer&lt;/code&gt;, you are allowed to call: &lt;code&gt;vkResetCommandBuffer(cmd, 0);&lt;/code&gt; on individual command buffers. This
+is essential for per-frame command buffer reuse.&lt;/p&gt;
+&lt;p&gt;Without this flag&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;You cannot reset individual command buffers&lt;/li&gt;
+&lt;li&gt;You must reset the entire command pool at once:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Command Pool Create Flags&lt;/th&gt;
+&lt;th&gt;Notes&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eTransient&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Hint that command buffers are short-lived(often ignored by drivers)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eResetCommandBuffer&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Allow reset for individual command buffers.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;eProtected&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Used for protected content paths (rare)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;pre&gt;&lt;code&gt;void VulkanEngine::create_command_pool_raii() {
+    const CommandPoolCreateInfo poolInfo{
+        .flags            = CommandPoolCreateFlagBits::eResetCommandBuffer,
+        .queueFamilyIndex = queueIndex,
+    };
+    this-&amp;gt;command_pool = raii::CommandPool(device, poolInfo);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;Create Command Buffers RAII&lt;/h2&gt;
+&lt;p&gt;In Vulkan, you do not issue rendering commands directly.&lt;/p&gt;
+&lt;p&gt;Instead:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;You record commands into a &lt;code&gt;VkCommandBuffer&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;You submit that command buffer to a queue&lt;/li&gt;
+&lt;li&gt;The GPU executes it later&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So a command buffer is: A pre-recorded list of GPU commands&lt;/p&gt;
+&lt;h4&gt;&lt;code&gt;commandPool&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;A command pool:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Owns the memory used by command buffers&lt;/li&gt;
+&lt;li&gt;Is associated with one queue family&lt;/li&gt;
+&lt;li&gt;Controls allocation and reset behavior&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;:::important&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Command buffers allocated from a pool must be submitted to a queue from the same queue family&lt;/li&gt;
+&lt;li&gt;Destroying the pool automatically frees all its command buffers
+:::&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;&lt;code&gt;level = ePrimary&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;Vulkan has two command buffer levels:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;ePrimary&lt;/code&gt;: Can be submitted directly to a queue&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;eSecondary&lt;/code&gt;: Can only be executed by a primary buffer&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;You chose primary command buffers, meaning:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;These will be submitted directly with vkQueueSubmit&lt;/li&gt;
+&lt;li&gt;This is the most common and simplest approach&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Secondary command buffers are used for:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Multi-threaded recording&lt;/li&gt;
+&lt;li&gt;Reusable command sequences&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;&lt;code&gt;commandBufferCount&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;This is very important for frame synchronization.&lt;/p&gt;
+&lt;p&gt;What “frames in flight” means&lt;/p&gt;
+&lt;p&gt;In modern Vulkan engines, you usually allow multiple frames to be:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;recorded on CPU&lt;/li&gt;
+&lt;li&gt;while previous frames are still executing on GPU&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Common values:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;2 (double buffering)&lt;/li&gt;
+&lt;li&gt;3 (triple buffering)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So this line means: “Allocate one primary command buffer per frame-in-flight.”&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;void VulkanEngine::create_command_buffer_raii() {
+    const CommandBufferAllocateInfo allocInfo{
+        .commandPool        = this-&amp;gt;command_pool,
+        .level              = CommandBufferLevel::ePrimary,
+        .commandBufferCount = this-&amp;gt;info.max_frames_in_flight,
+    };
+    this-&amp;gt;command_buffer = raii::CommandBuffers(this-&amp;gt;device, allocInfo);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;Create Graphics Pipeline RAII&lt;/h2&gt;
+&lt;p&gt;A graphics pipeline in Vulkan is a fully compiled GPU state object that defines:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;which shaders run&lt;/li&gt;
+&lt;li&gt;how vertices are assembled&lt;/li&gt;
+&lt;li&gt;how primitives are rasterized&lt;/li&gt;
+&lt;li&gt;how fragments are blended&lt;/li&gt;
+&lt;li&gt;how outputs are written&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;With dynamic rendering, the pipeline:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;does not reference a render pass&lt;/li&gt;
+&lt;li&gt;instead declares its attachment formats via PipelineRenderingCreateInfo&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;void VulkanEngine::create_graphics_pipeline_raii() {
+    raii::ShaderModule shaderModule = create_shader_module(readFile(&quot;shaders/shader1.spv&quot;));
+
+    PipelineShaderStageCreateInfo vertShaderStageInfo{.stage = ShaderStageFlagBits::eVertex, .module = shaderModule, .pName = &quot;vertMain&quot;};
+    PipelineShaderStageCreateInfo fragShaderStageInfo{.stage = ShaderStageFlagBits::eFragment, .module = shaderModule, .pName = &quot;fragMain&quot;};
+    PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+
+    PipelineVertexInputStateCreateInfo vertexInputInfo;
+    PipelineInputAssemblyStateCreateInfo inputAssembly{.topology = PrimitiveTopology::eTriangleList};
+    PipelineViewportStateCreateInfo viewportState{.viewportCount = 1, .scissorCount = 1};
+
+    PipelineRasterizationStateCreateInfo rasterizer{.depthClampEnable = False, .rasterizerDiscardEnable = False, .polygonMode = PolygonMode::eFill, .cullMode = CullModeFlagBits::eBack, .frontFace = FrontFace::eClockwise, .depthBiasEnable = False, .depthBiasSlopeFactor = 1.0f, .lineWidth = 1.0f};
+
+    PipelineMultisampleStateCreateInfo multisampling{.rasterizationSamples = SampleCountFlagBits::e1, .sampleShadingEnable = False};
+
+    PipelineColorBlendAttachmentState colorBlendAttachment{.blendEnable = False, .colorWriteMask = ColorComponentFlagBits::eR | ColorComponentFlagBits::eG | ColorComponentFlagBits::eB | ColorComponentFlagBits::eA};
+
+    PipelineColorBlendStateCreateInfo colorBlending{.logicOpEnable = False, .logicOp = LogicOp::eCopy, .attachmentCount = 1, .pAttachments = &amp;amp;colorBlendAttachment};
+
+    std::vector dynamicStates = {DynamicState::eViewport, DynamicState::eScissor};
+    PipelineDynamicStateCreateInfo dynamicState{.dynamicStateCount = static_cast&amp;lt;uint32_t&amp;gt;(dynamicStates.size()), .pDynamicStates = dynamicStates.data()};
+
+    PipelineLayoutCreateInfo pipelineLayoutInfo{.setLayoutCount = 0, .pushConstantRangeCount = 0};
+
+    this-&amp;gt;pipeline_layout = raii::PipelineLayout(device, pipelineLayoutInfo);
+
+    StructureChain&amp;lt;GraphicsPipelineCreateInfo, PipelineRenderingCreateInfo&amp;gt; pipelineCreateInfoChain = {{
+                                                                                                           .stageCount          = 2,
+                                                                                                           .pStages             = shaderStages,
+                                                                                                           .pVertexInputState   = &amp;amp;vertexInputInfo,
+                                                                                                           .pInputAssemblyState = &amp;amp;inputAssembly,
+                                                                                                           .pViewportState      = &amp;amp;viewportState,
+                                                                                                           .pRasterizationState = &amp;amp;rasterizer,
+                                                                                                           .pMultisampleState   = &amp;amp;multisampling,
+                                                                                                           .pColorBlendState    = &amp;amp;colorBlending,
+                                                                                                           .pDynamicState       = &amp;amp;dynamicState,
+                                                                                                           .layout              = this-&amp;gt;pipeline_layout,
+                                                                                                           .renderPass          = nullptr,
+                                                                                                       },
+        {
+            .colorAttachmentCount    = 1,
+            .pColorAttachmentFormats = &amp;amp;this-&amp;gt;swapchain_surface_format.format,
+        }};
+
+    this-&amp;gt;graphics_pipeline = raii::Pipeline(device, nullptr, pipelineCreateInfoChain.get&amp;lt;GraphicsPipelineCreateInfo&amp;gt;());
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;shader module creation&lt;/h3&gt;
+&lt;p&gt;What this does&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Loads a SPIR-V binary (.spv)&lt;/li&gt;
+&lt;li&gt;Creates a VkShaderModule&lt;/li&gt;
+&lt;li&gt;Wrapped in RAII&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;You use one shader module for both vertex and fragment stages later:&lt;/p&gt;
+&lt;p&gt;This is valid only if: the SPIR-V contains both entry points&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;vertMain&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;fragMain&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Entry point rule: The entry point must exactly match the name in SPIR-V, including case.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;raii::ShaderModule VulkanEngine::create_shader_module(const std::vector&amp;lt;char&amp;gt;&amp;amp; code) const {
+    const ShaderModuleCreateInfo createInfo{
+        .codeSize = code.size() * sizeof(char),
+        .pCode    = reinterpret_cast&amp;lt;const uint32_t*&amp;gt;(code.data()),
+    };
+    raii::ShaderModule shaderModule{this-&amp;gt;device, createInfo};
+    return shaderModule;
+}
+
+raii::ShaderModule shaderModule = create_shader_module(readFile(&quot;shaders/shader1.spv&quot;));
+PipelineShaderStageCreateInfo vertShaderStageInfo{.stage = ShaderStageFlagBits::eVertex, .module = shaderModule, .pName = &quot;vertMain&quot;};
+PipelineShaderStageCreateInfo fragShaderStageInfo{.stage = ShaderStageFlagBits::eFragment, .module = shaderModule, .pName = &quot;fragMain&quot;};
+PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;vertex input state&lt;/h3&gt;
+&lt;p&gt;This is empty, meaning:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;No vertex bindings&lt;/li&gt;
+&lt;li&gt;No vertex attributes&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;PipelineVertexInputStateCreateInfo vertexInputInfo;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;input assembly state&lt;/h3&gt;
+&lt;p&gt;What this means&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Each group of 3 vertices → one triangle&lt;/li&gt;
+&lt;li&gt;No adjacency&lt;/li&gt;
+&lt;li&gt;No primitive restart (not enabled here)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;PipelineInputAssemblyStateCreateInfo inputAssembly{.topology = PrimitiveTopology::eTriangleList};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;viewport &amp;amp; scissor state (dynamic)&lt;/h3&gt;
+&lt;p&gt;Even though viewport and scissor are dynamic, Vulkan still requires:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;how many viewports/scissors exist&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Actual values will be set later with:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;vkCmdSetViewport&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;vkCmdSetScissor&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;PipelineViewportStateCreateInfo viewportState{.viewportCount = 1, .scissorCount = 1};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;rasterization state&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Field&lt;/th&gt;
+&lt;th&gt;Meaning&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;polygonMode&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Fill triangles (not wireframe)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;cullMode&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Cull back-facing triangles&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;frontFace&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Clockwise winding = front face&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;rasterizerDiscardEnable&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Disabled → geometry is rasterized&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;:::Important
+Most Vulkan tutorials use FrontFace::eCounterClockwise.
+:::&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;PipelineRasterizationStateCreateInfo rasterizer{
+    .depthClampEnable        = False,
+    .rasterizerDiscardEnable = False,
+    .polygonMode             = PolygonMode::eFill,
+    .cullMode                = CullModeFlagBits::eBack,
+    .frontFace               = FrontFace::eClockwise,
+    .depthBiasEnable         = False,
+    .depthBiasSlopeFactor    = 1.0f,
+    .lineWidth               = 1.0f,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;multisample state&lt;/h3&gt;
+&lt;p&gt;This means:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;No MSAA&lt;/li&gt;
+&lt;li&gt;One sample per pixel&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This is the simplest and most common starting point.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;PipelineMultisampleStateCreateInfo multisampling{
+    .rasterizationSamples = SampleCountFlagBits::e1,
+    .sampleShadingEnable  = False,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;color blend attachment&lt;/h3&gt;
+&lt;p&gt;What this means&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;No blending&lt;/li&gt;
+&lt;li&gt;Fragment shader output overwrites the color attachment&lt;/li&gt;
+&lt;li&gt;Writes RGBA channels&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This is correct for opaque rendering.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;PipelineColorBlendAttachmentState colorBlendAttachment{
+    .blendEnable    = False,
+    .colorWriteMask = ColorComponentFlagBits::eR | ColorComponentFlagBits::eG | ColorComponentFlagBits::eB | ColorComponentFlagBits::eA,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;color blend state&lt;/h3&gt;
+&lt;p&gt;This defines blending per attachment.&lt;/p&gt;
+&lt;p&gt;Since dynamic rendering uses one color attachment, this matches correctly.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;PipelineColorBlendStateCreateInfo colorBlending{
+    .logicOpEnable   = False,
+    .logicOp         = LogicOp::eCopy,
+    .attachmentCount = 1,
+    .pAttachments    = &amp;amp;colorBlendAttachment,
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;dynamic state&lt;/h3&gt;
+&lt;p&gt;Why dynamic state matters&lt;/p&gt;
+&lt;p&gt;This tells Vulkan: “Viewport and scissor will be provided at command recording time.”&lt;/p&gt;
+&lt;p&gt;This avoids pipeline recreation on resize.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;std::vector dynamicStates = {DynamicState::eViewport, DynamicState::eScissor};
+PipelineDynamicStateCreateInfo dynamicState{
+    .dynamicStateCount = static_cast&amp;lt;uint32_t&amp;gt;(dynamicStates.size()),
+    .pDynamicStates    = dynamicStates.data(),
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;pipeline layout&lt;/h3&gt;
+&lt;p&gt;Meaning&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;No descriptor sets&lt;/li&gt;
+&lt;li&gt;No push constants&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This is valid only if:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;shaders do not reference descriptors or push constants&lt;/li&gt;
+&lt;li&gt;Later, when you add uniforms/textures, this will change.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;PipelineLayoutCreateInfo pipelineLayoutInfo{.setLayoutCount = 0, .pushConstantRangeCount = 0};
+
+this-&amp;gt;pipeline_layout = raii::PipelineLayout(device, pipelineLayoutInfo);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;graphics pipeline&lt;/h3&gt;
+&lt;p&gt;:::Important[Key Point]&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;.renderPass = nullptr
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is required for dynamic rendering.&lt;/p&gt;
+&lt;p&gt;:::&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;{
+    .colorAttachmentCount    = 1,
+    .pColorAttachmentFormats = &amp;amp;this-&amp;gt;swapchain_surface_format.format,
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This declares:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;number of color attachments&lt;/li&gt;
+&lt;li&gt;their formats&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This must match:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;the format used in &lt;code&gt;vkCmdBeginRendering&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;the swapchain image format&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;StructureChain&amp;lt;GraphicsPipelineCreateInfo, PipelineRenderingCreateInfo&amp;gt; pipelineCreateInfoChain = {{
+                                                                                                       .stageCount          = 2,
+                                                                                                       .pStages             = shaderStages,
+                                                                                                       .pVertexInputState   = &amp;amp;vertexInputInfo,
+                                                                                                       .pInputAssemblyState = &amp;amp;inputAssembly,
+                                                                                                       .pViewportState      = &amp;amp;viewportState,
+                                                                                                       .pRasterizationState = &amp;amp;rasterizer,
+                                                                                                       .pMultisampleState   = &amp;amp;multisampling,
+                                                                                                       .pColorBlendState    = &amp;amp;colorBlending,
+                                                                                                       .pDynamicState       = &amp;amp;dynamicState,
+                                                                                                       .layout              = this-&amp;gt;pipeline_layout,
+                                                                                                       .renderPass          = nullptr,
+                                                                                                   },
+    {
+        .colorAttachmentCount    = 1,
+        .pColorAttachmentFormats = &amp;amp;this-&amp;gt;swapchain_surface_format.format,
+    }};
+
+this-&amp;gt;graphics_pipeline = raii::Pipeline(device, nullptr, pipelineCreateInfoChain.get&amp;lt;GraphicsPipelineCreateInfo&amp;gt;());
+&lt;/code&gt;&lt;/pre&gt;
+</content:encoded></item><item><title>[Instant NGP Code Digest - A First Principle Perspective] PCG: Permuted Congruential Generator</title><link>https://graphics.xayah.me/posts/251128-pcg/</link><guid isPermaLink="true">https://graphics.xayah.me/posts/251128-pcg/</guid><description>What is PCG (Permuted Congruential Generator) and how to implement it from scratch?</description><pubDate>Fri, 28 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;:::tip[UPDATE LOG]&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;[x] PCG Implementation (2025-11-28)&lt;/li&gt;
+&lt;li&gt;[x] PCG Definition (2025-11-28)&lt;/li&gt;
+&lt;li&gt;[x] PCG Motivation (2025-11-28)
+:::&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1&gt;1. Why Introduce PCG?&lt;/h1&gt;
+&lt;p&gt;Most random number generators in widespread use today have one of the following problems: &lt;a href=&quot;https://www.pcg-random.org/&quot;&gt;[1]&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.pcg-random.org/statistical-tests.html&quot;&gt;Not Actually Random&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.pcg-random.org/predictability.html&quot;&gt;Predictable &amp;amp; Insecure&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.pcg-random.org/rng-performance.html&quot;&gt;Mediocre Performance&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.pcg-random.org/useful-features.html&quot;&gt;Lack Useful Features&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;RNG Family&lt;/th&gt;
+&lt;th&gt;Statistical Quality&lt;/th&gt;
+&lt;th&gt;Prediction Difficulty&lt;/th&gt;
+&lt;th&gt;Reproducible Results&lt;/th&gt;
+&lt;th&gt;Multiple Streams&lt;/th&gt;
+&lt;th&gt;Period&lt;/th&gt;
+&lt;th&gt;Useful Features&lt;/th&gt;
+&lt;th&gt;Time Performance&lt;/th&gt;
+&lt;th&gt;Space Usage&lt;/th&gt;
+&lt;th&gt;Code Size &amp;amp; Complexity&lt;/th&gt;
+&lt;th&gt;k-Dimensional Equidistribution&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;PCG Family&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;🟢 Excellent&lt;/td&gt;
+&lt;td&gt;🟢 Challenging&lt;/td&gt;
+&lt;td&gt;🟢 Yes&lt;/td&gt;
+&lt;td&gt;🟢 Yes (2^63)&lt;/td&gt;
+&lt;td&gt;🟢 Arbitrary&lt;/td&gt;
+&lt;td&gt;🟢 Jump ahead, Distance&lt;/td&gt;
+&lt;td&gt;🟢 Very fast&lt;/td&gt;
+&lt;td&gt;🟢 Very compact&lt;/td&gt;
+&lt;td&gt;🟢 Very small&lt;/td&gt;
+&lt;td&gt;🟢 Arbitrary*&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Mersenne Twister&lt;/td&gt;
+&lt;td&gt;🟡 Some Failures&lt;/td&gt;
+&lt;td&gt;🔴 Easy&lt;/td&gt;
+&lt;td&gt;🟢 Yes&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;td&gt;🟢 Huge (2^19937)&lt;/td&gt;
+&lt;td&gt;🟡 Jump ahead&lt;/td&gt;
+&lt;td&gt;🟡 Acceptable&lt;/td&gt;
+&lt;td&gt;🟡 Huge (2 KB)&lt;/td&gt;
+&lt;td&gt;🟡 Complex&lt;/td&gt;
+&lt;td&gt;🟢 623&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Arc4Random&lt;/td&gt;
+&lt;td&gt;🟡 Some Issues&lt;/td&gt;
+&lt;td&gt;🟢 Secure&lt;/td&gt;
+&lt;td&gt;🟡 Not Always&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;td&gt;🟢 Huge (2^1699)&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;td&gt;🔴 Slow&lt;/td&gt;
+&lt;td&gt;🟡 Large (0.5 KB)&lt;/td&gt;
+&lt;td&gt;🟡 Complex&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;ChaCha20†&lt;/td&gt;
+&lt;td&gt;🟢 Good&lt;/td&gt;
+&lt;td&gt;🟢 Secure&lt;/td&gt;
+&lt;td&gt;🟢 Yes&lt;/td&gt;
+&lt;td&gt;🟢 Yes (2^128)&lt;/td&gt;
+&lt;td&gt;🟢 2^128&lt;/td&gt;
+&lt;td&gt;🟢 Jump ahead, Distance&lt;/td&gt;
+&lt;td&gt;🔴 Fairly Slow&lt;/td&gt;
+&lt;td&gt;🟡 Plump (0.1 KB)&lt;/td&gt;
+&lt;td&gt;🟡 Complex&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Minstd (LCG)&lt;/td&gt;
+&lt;td&gt;🔴 Many Issues&lt;/td&gt;
+&lt;td&gt;🔴 Trivial&lt;/td&gt;
+&lt;td&gt;🟢 Yes&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;td&gt;🔴 Tiny &amp;lt; 2^32&lt;/td&gt;
+&lt;td&gt;🟢 Jump ahead, Distance&lt;/td&gt;
+&lt;td&gt;🟡 Acceptable&lt;/td&gt;
+&lt;td&gt;🟢 Very compact&lt;/td&gt;
+&lt;td&gt;🟢 Very small&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;LCG 64/32&lt;/td&gt;
+&lt;td&gt;🔴 Many Issues&lt;/td&gt;
+&lt;td&gt;🟡 Published Algos&lt;/td&gt;
+&lt;td&gt;🟢 Yes&lt;/td&gt;
+&lt;td&gt;🟢 Yes 2^63&lt;/td&gt;
+&lt;td&gt;🟢 Okay 2^64&lt;/td&gt;
+&lt;td&gt;🟢 Jump ahead, Distance&lt;/td&gt;
+&lt;td&gt;🟢 Very fast&lt;/td&gt;
+&lt;td&gt;🟢 Very compact&lt;/td&gt;
+&lt;td&gt;🟢 Very small&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;XorShift 32&lt;/td&gt;
+&lt;td&gt;🔴 Many Issues&lt;/td&gt;
+&lt;td&gt;🔴 Trivial&lt;/td&gt;
+&lt;td&gt;🟢 Yes&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;td&gt;🔴 Small 2^32&lt;/td&gt;
+&lt;td&gt;🟡 Jump ahead&lt;/td&gt;
+&lt;td&gt;🟢 Fast&lt;/td&gt;
+&lt;td&gt;🟢 Very compact&lt;/td&gt;
+&lt;td&gt;🟢 Very small&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;XorShift 64&lt;/td&gt;
+&lt;td&gt;🔴 Many Issues&lt;/td&gt;
+&lt;td&gt;🔴 Trivial&lt;/td&gt;
+&lt;td&gt;🟢 Yes&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;td&gt;🟢 Okay 2^64&lt;/td&gt;
+&lt;td&gt;🟡 Jump ahead&lt;/td&gt;
+&lt;td&gt;🟢 Fast&lt;/td&gt;
+&lt;td&gt;🟢 Very compact&lt;/td&gt;
+&lt;td&gt;🟢 Very small&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;RanQ&lt;/td&gt;
+&lt;td&gt;🟡 Some Issues&lt;/td&gt;
+&lt;td&gt;🔴 Trivial&lt;/td&gt;
+&lt;td&gt;🟢 Yes&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;td&gt;🟢 Okay 2^64&lt;/td&gt;
+&lt;td&gt;🟡 Jump ahead&lt;/td&gt;
+&lt;td&gt;🟢 Fast&lt;/td&gt;
+&lt;td&gt;🟢 Very compact&lt;/td&gt;
+&lt;td&gt;🟢 Very small&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;XorShift* 64/32&lt;/td&gt;
+&lt;td&gt;🟢 Excellent&lt;/td&gt;
+&lt;td&gt;🟡 Unknown?&lt;/td&gt;
+&lt;td&gt;🟢 Yes&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;td&gt;🟢 Okay 2^64&lt;/td&gt;
+&lt;td&gt;🟡 Jump ahead&lt;/td&gt;
+&lt;td&gt;🟢 Fast&lt;/td&gt;
+&lt;td&gt;🟢 Very compact&lt;/td&gt;
+&lt;td&gt;🟢 Very small&lt;/td&gt;
+&lt;td&gt;🔴 No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;hr /&gt;
+&lt;h1&gt;2. What is PCG? Learn PCG from Scratch&lt;/h1&gt;
+&lt;h2&gt;2.1 The foundation: LCG &lt;a href=&quot;https://en.wikipedia.org/wiki/Linear_congruential_generator&quot;&gt;[2]&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;The most basic PRNG &lt;a href=&quot;https://en.wikipedia.org/wiki/Pseudorandom_number_generator&quot;&gt;[3]&lt;/a&gt; uses this recurrence:&lt;/p&gt;
+&lt;p&gt;$$
+x_{n+1} = (a x_n + c) \bmod 2^{64}
+$$&lt;/p&gt;
+&lt;p&gt;This is only integer modular arithmetic. $x_n = \text{internal hidden state}$.&lt;/p&gt;
+&lt;p&gt;It is fast, but it has &lt;strong&gt;huge weaknesses&lt;/strong&gt;:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Problem&lt;/th&gt;
+&lt;th&gt;Why&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Poor randomness&lt;/td&gt;
+&lt;td&gt;Bits are highly correlated&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Easy to predict&lt;/td&gt;
+&lt;td&gt;Given a few outputs → recover the sequence&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Low quality high-order entropy&lt;/td&gt;
+&lt;td&gt;Top bits &amp;amp; bottom bits are uneven&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;PCG starts from this formula&lt;/strong&gt;, but enhances it.&lt;/p&gt;
+&lt;h2&gt;2.2 PCG = LCG + Permutation&lt;/h2&gt;
+&lt;h3&gt;Key idea:&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Instead of returning the state directly, apply a &lt;em&gt;randomizing permutation&lt;/em&gt; to it.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;$$
+\text{output} = \Pi\big(x_{n}\big)
+$$&lt;/p&gt;
+&lt;p&gt;where $\Pi$ scrambles bits to break patterns.&lt;/p&gt;
+&lt;p&gt;So PCG is:&lt;/p&gt;
+&lt;p&gt;$$
+x_{n+1} = (a x_n + c) \bmod 2^{64} \quad \text{(LCG update)}
+$$
+$$
+y_n = \text{permute}(x_n) \quad \text{(XSH-RR bit scramble)}
+$$&lt;/p&gt;
+&lt;p&gt;PCG doesn’t rely on a stronger LCG—
+&lt;strong&gt;it relies on a brilliant output function.&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;Permutation in PCG&lt;/h3&gt;
+&lt;p&gt;Key properties we want of this permutation:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Property&lt;/th&gt;
+&lt;th&gt;Meaning&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;bijective&lt;/td&gt;
+&lt;td&gt;every 64-bit input maps to a unique 64-bit output&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;nonlinear&lt;/td&gt;
+&lt;td&gt;breaks the linear structure of LCG outputs&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;statistically strong&lt;/td&gt;
+&lt;td&gt;spreads entropy across bits&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;predictable only with effort&lt;/td&gt;
+&lt;td&gt;increases difficulty of state recovery&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;The specific permutation used in &lt;strong&gt;PCG-XSH-RR&lt;/strong&gt; (the standard version) is a combination of &lt;strong&gt;XOR-shift&lt;/strong&gt;, &lt;strong&gt;high-bit extraction&lt;/strong&gt;, and a &lt;strong&gt;data-dependent bit rotation&lt;/strong&gt;:&lt;/p&gt;
+&lt;h4&gt;Step 1 — XOR-Shift (XSH)&lt;/h4&gt;
+&lt;p&gt;Mix the state with a shifted copy of itself:&lt;/p&gt;
+&lt;p&gt;$$
+z = x_n \oplus (x_n \gg 18)
+$$
+$$
+z = z \gg 27
+$$&lt;/p&gt;
+&lt;p&gt;This step reduces 64-bit state to a scrambled 32-bit value while blending high bits into low bits — eliminating weak low-bit structure of raw LCG.&lt;/p&gt;
+&lt;h4&gt;Step 2 — Random Rotate (RR)&lt;/h4&gt;
+&lt;p&gt;Compute a rotation amount using the high bits of the state:&lt;/p&gt;
+&lt;p&gt;$$
+r = x_n \gg 59
+$$&lt;/p&gt;
+&lt;p&gt;Then rotate the previous output value right by that amount:&lt;/p&gt;
+&lt;p&gt;$$
+y_n = (z \gg r) ;\big|; (z \ll (32-r))
+$$&lt;/p&gt;
+&lt;p&gt;This rotation is &lt;strong&gt;state-dependent&lt;/strong&gt;, meaning &lt;em&gt;each output is shuffled differently&lt;/em&gt;.&lt;/p&gt;
+&lt;h2&gt;3. PCG: From Theory to Implementation&lt;/h2&gt;
+&lt;h3&gt;3.1 Precise Definition&lt;/h3&gt;
+&lt;p&gt;Using everything above, we can now define a PCG generator &lt;em&gt;precisely&lt;/em&gt;. &lt;a href=&quot;https://en.wikipedia.org/wiki/Permuted_congruential_generator&quot;&gt;[4]&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;A &lt;strong&gt;PCG generator&lt;/strong&gt; is fully determined by two components:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;State transition function&lt;/strong&gt;  (LCG core)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Output permutation function&lt;/strong&gt;  (scrambler)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Formally:&lt;/p&gt;
+&lt;p&gt;$$
+\boxed{
+\begin{aligned}
+x_{n+1} &amp;amp;= (a x_n + c) \bmod 2^{64} \
+y_n &amp;amp;= \Pi(x_n)
+\end{aligned}
+}
+$$&lt;/p&gt;
+&lt;p&gt;Where:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Symbol&lt;/th&gt;
+&lt;th&gt;Meaning&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;$ x_n $&lt;/td&gt;
+&lt;td&gt;64-bit internal state (never returned directly)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;$ a $&lt;/td&gt;
+&lt;td&gt;multiplier constant, odd, fixed per RNG instance&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;$ c $&lt;/td&gt;
+&lt;td&gt;increment constant (stream selector), must be odd&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;$ \Pi(\cdot) $&lt;/td&gt;
+&lt;td&gt;output permutation for statistical quality&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;$ y_n $&lt;/td&gt;
+&lt;td&gt;the returned random number&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;This structure is &lt;em&gt;modular&lt;/em&gt;:
+any LCG + any permutation = a PCG variant.&lt;/p&gt;
+&lt;p&gt;The most common and recommended version is &lt;strong&gt;PCG-XSH-RR 64/32&lt;/strong&gt;
+→ 64-bit state, produces 32-bit outputs.&lt;/p&gt;
+&lt;h3&gt;3.2 Official PCG-XSH-RR Output Function&lt;/h3&gt;
+&lt;p&gt;$$
+\Pi(x) = \text{ROR}\big((x \oplus (x \gg 18)) \gg 27, ; x \gg 59 \big)
+$$&lt;/p&gt;
+&lt;p&gt;Expanded step-by-step:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Step&lt;/th&gt;
+&lt;th&gt;Operation&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;$t = x \gg 18$&lt;/td&gt;
+&lt;td&gt;extract high bits&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;$t = x \oplus t$&lt;/td&gt;
+&lt;td&gt;mix entropy (XOR-shift)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;$z = t \gg 27$&lt;/td&gt;
+&lt;td&gt;compress to 32 bits&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;$r = x \gg 59$&lt;/td&gt;
+&lt;td&gt;derive rotation amount&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;$y = \text{ROR}(z, r)$&lt;/td&gt;
+&lt;td&gt;final non-linear permutation&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Result:&lt;/p&gt;
+&lt;p&gt;$$
+\boxed{y_n = \text{ROR}\Big(\big(x_n \oplus (x_n \gg 18)\big) \gg 27,\ x_n \gg 59\Big)}
+$$&lt;/p&gt;
+&lt;p&gt;This is the heart of PCG.&lt;/p&gt;
+&lt;h3&gt;3.3 Official Reference Implementation (C++)&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;uint32_t pcg32_random_r(uint64_t&amp;amp; state, uint64_t inc) {
+    uint64_t old = state;
+    state = old * 6364136223846793005ULL + (inc | 1ULL);
+
+    uint32_t xorshifted = ((old &amp;gt;&amp;gt; 18u) ^ old) &amp;gt;&amp;gt; 27u;
+    uint32_t rot = old &amp;gt;&amp;gt; 59u;
+
+    return (xorshifted &amp;gt;&amp;gt; rot) | (xorshifted &amp;lt;&amp;lt; ((32 - rot) &amp;amp; 31));
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4&gt;Notes:&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;state&lt;/code&gt; evolves using &lt;strong&gt;LCG step&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;xorshifted&lt;/code&gt; implements the &lt;strong&gt;XSH&lt;/strong&gt; algorithm&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;rot&lt;/code&gt; comes from the &lt;strong&gt;59 highest bits&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;final line is the &lt;strong&gt;RR rotation&lt;/strong&gt; → the output&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This is &lt;em&gt;exactly&lt;/em&gt; the formula we defined above.&lt;/p&gt;
+&lt;h1&gt;Reference&lt;/h1&gt;
+&lt;ol&gt;
+&lt;li&gt;https://www.pcg-random.org/&lt;/li&gt;
+&lt;li&gt;https://en.wikipedia.org/wiki/Linear_congruential_generator&lt;/li&gt;
+&lt;li&gt;https://en.wikipedia.org/wiki/Pseudorandom_number_generator&lt;/li&gt;
+&lt;li&gt;https://en.wikipedia.org/wiki/Permuted_congruential_generator&lt;/li&gt;
+&lt;/ol&gt;
+</content:encoded></item><item><title>[Instant NGP Code Digest - A First Principle Perspective] CDF: Cumulative Distribution Function</title><link>https://graphics.xayah.me/posts/251127-cdf/</link><guid isPermaLink="true">https://graphics.xayah.me/posts/251127-cdf/</guid><pubDate>Thu, 27 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;:::tip[UPDATE LOG]&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;[ ] &lt;s&gt;Implementation / Usage in Instant NGP&lt;/s&gt; (moved to &lt;a href=&quot;https://i.xayah.me/posts/251126-instant-ngp/&quot;&gt;here&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;[x] CDF Definition (2025-11-27)
+:::&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1&gt;1. What is CDF?&lt;/h1&gt;
+&lt;h2&gt;Definition&lt;/h2&gt;
+&lt;p&gt;The &lt;strong&gt;cumulative distribution function (CDF)&lt;/strong&gt; of a real-valued random variable $X$ is the function given by:&lt;a href=&quot;https://en.wikipedia.org/wiki/Cumulative_distribution_function&quot;&gt;[1]&lt;/a&gt;
+$$
+F_X(x) = \mathbb{P}(X \le x)
+$$
+where the right-hand side represents the probability that the random variable $X$ takes on a value less than or equal to $x$.&lt;/p&gt;
+&lt;p&gt;The probability that $X$ lies in the semi-closed interval $(a, b]$, where $a &amp;lt; b$, is therefore:&lt;a href=&quot;https://en.wikipedia.org/wiki/Cumulative_distribution_function&quot;&gt;[1]&lt;/a&gt;
+$$
+\mathbb{P}(a &amp;lt; X \le b) = F_X(b) - F_X(a)
+$$&lt;/p&gt;
+&lt;p&gt;The CDF of a continuous random variable $X$ can be expressed as the integral of its &lt;strong&gt;probability density function (PDF)&lt;/strong&gt; $f_X$ as follows:&lt;a href=&quot;https://en.wikipedia.org/wiki/Cumulative_distribution_function&quot;&gt;[1]&lt;/a&gt;
+$$
+F_X(x) = \int_{-\infty}^{x} f_X(t), dt
+$$&lt;/p&gt;
+&lt;h2&gt;CDF for the normal distribution ${\mathcal{N}}(\mu ,\sigma ^{2})$&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&quot;https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Normal_Distribution_CDF.svg/330px-Normal_Distribution_CDF.svg.png&quot; alt=&quot;CDF&quot; /&gt;&lt;/p&gt;
+&lt;h1&gt;Reference&lt;/h1&gt;
+&lt;ol&gt;
+&lt;li&gt;https://en.wikipedia.org/wiki/Cumulative_distribution_function&lt;/li&gt;
+&lt;/ol&gt;
+</content:encoded></item><item><title>C++ Native Thread Pool</title><link>https://graphics.xayah.me/posts/251113-thread-pool/</link><guid isPermaLink="true">https://graphics.xayah.me/posts/251113-thread-pool/</guid><pubDate>Thu, 13 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h1&gt;Motivation&lt;/h1&gt;
+&lt;h2&gt;A. Problems:&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;std::thread([&amp;amp;]{ do_work(); }).detach();
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Expensive Overhead&lt;/strong&gt;: Creating and destroying threads frequently is costly (milliseconds per thread).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Thread Management&lt;/strong&gt;: Hard to coordinate and control many short-lived threads and their tasks.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Resource Exhaustion&lt;/strong&gt;: Spawning too many threads can exhaust system resources (CPU, memory, handles).&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1&gt;Minimal Thread Pools from Scratch&lt;/h1&gt;
+&lt;pre&gt;&lt;code&gt;#include &amp;lt;condition_variable&amp;gt;
+#include &amp;lt;functional&amp;gt;
+#include &amp;lt;future&amp;gt;
+#include &amp;lt;mutex&amp;gt;
+#include &amp;lt;queue&amp;gt;
+#include &amp;lt;thread&amp;gt;
+#include &amp;lt;vector&amp;gt;
+
+class MiniPool {
+public:
+    explicit MiniPool(const size_t n) {
+        for (size_t i = 0; i &amp;lt; n; ++i) {
+            workers.emplace_back([this] {
+                for (;;) {
+                    std::function&amp;lt;void()&amp;gt; task;
+                    {
+                        std::unique_lock&amp;lt;std::mutex&amp;gt; lock(mtx);
+                        cv.wait(lock, [this] { return stopping || !tasks.empty(); });
+                        if (stopping &amp;amp;&amp;amp; tasks.empty()) return;
+                        task = std::move(tasks.front());
+                        tasks.pop();
+                    }
+                    task();
+                }
+            });
+        }
+    }
+
+    template &amp;lt;typename F&amp;gt;
+    auto enqueue(F f) -&amp;gt; std::future&amp;lt;std::invoke_result_t&amp;lt;F&amp;gt;&amp;gt; {
+        using R            = std::invoke_result_t&amp;lt;F&amp;gt;;
+        auto t             = std::make_shared&amp;lt;std::packaged_task&amp;lt;R()&amp;gt;&amp;gt;(std::move(f));
+        std::future&amp;lt;R&amp;gt; res = t-&amp;gt;get_future();
+        {
+            std::lock_guard&amp;lt;std::mutex&amp;gt; lock(mtx);
+            tasks.emplace([t] { (*t)(); });
+        }
+        cv.notify_one();
+        return res;
+    }
+
+    ~MiniPool() {
+        {
+            std::lock_guard&amp;lt;std::mutex&amp;gt; lock(mtx);
+            stopping = true;
+        }
+        cv.notify_all();
+        for (auto&amp;amp; w : workers) w.join();
+    }
+
+private:
+    std::vector&amp;lt;std::thread&amp;gt; workers;
+    std::queue&amp;lt;std::function&amp;lt;void()&amp;gt;&amp;gt; tasks;
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool stopping = false;
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h1&gt;A Modern C++ Thread Pool&lt;/h1&gt;
+&lt;pre&gt;&lt;code&gt;class ThreadPool {
+public:
+    explicit ThreadPool(std::size_t thread_count = std::thread::hardware_concurrency()) : stop_(false), active_(0) {
+        if (thread_count == 0) {
+            thread_count = 1;
+        }
+        workers_.reserve(thread_count);
+        for (std::size_t i = 0; i &amp;lt; thread_count; ++i) {
+            workers_.emplace_back([this] { worker_loop(); });
+        }
+    }
+
+    ThreadPool(const ThreadPool&amp;amp;)            = delete;
+    ThreadPool&amp;amp; operator=(const ThreadPool&amp;amp;) = delete;
+    ThreadPool(ThreadPool&amp;amp;&amp;amp;)                 = delete;
+    ThreadPool&amp;amp; operator=(ThreadPool&amp;amp;&amp;amp;)      = delete;
+
+    ~ThreadPool() {
+        {
+            std::lock_guard&amp;lt;std::mutex&amp;gt; lock(mutex_);
+            stop_ = true;
+        }
+        cv_.notify_all();
+        for (auto&amp;amp; t : workers_) {
+            if (t.joinable()) {
+                t.join();
+            }
+        }
+    }
+
+    template &amp;lt;class F, class... Args&amp;gt;
+    auto enqueue(F&amp;amp;&amp;amp; f, Args&amp;amp;&amp;amp;... args) -&amp;gt; std::future&amp;lt;std::invoke_result_t&amp;lt;F, Args...&amp;gt;&amp;gt; {
+        using R = std::invoke_result_t&amp;lt;F, Args...&amp;gt;;
+
+        auto task = std::make_shared&amp;lt;std::packaged_task&amp;lt;R()&amp;gt;&amp;gt;(make_task_functor(std::forward&amp;lt;F&amp;gt;(f), std::forward&amp;lt;Args&amp;gt;(args)...));
+
+        std::future&amp;lt;R&amp;gt; fut = task-&amp;gt;get_future();
+
+        {
+            std::lock_guard&amp;lt;std::mutex&amp;gt; lock(mutex_);
+            if (stop_) {
+                throw std::runtime_error(&quot;enqueue on stopped ThreadPool&quot;);
+            }
+            tasks_.emplace_back([task] { (*task)(); });
+        }
+
+        cv_.notify_one();
+        return fut;
+    }
+
+    void wait_idle() {
+        std::unique_lock&amp;lt;std::mutex&amp;gt; lock(mutex_);
+        idle_cv_.wait(lock, [this] { return tasks_.empty() &amp;amp;&amp;amp; active_ == 0; });
+    }
+
+    std::size_t size() const noexcept {
+        return workers_.size();
+    }
+
+private:
+    using Task = std::function&amp;lt;void()&amp;gt;;
+
+    template &amp;lt;class F, class... Args&amp;gt;
+    static auto make_task_functor(F&amp;amp;&amp;amp; f, Args&amp;amp;&amp;amp;... args) {
+        using Fn  = std::decay_t&amp;lt;F&amp;gt;;
+        using Tup = std::tuple&amp;lt;std::decay_t&amp;lt;Args&amp;gt;...&amp;gt;;
+        return [fn = Fn(std::forward&amp;lt;F&amp;gt;(f)), tup = Tup(std::forward&amp;lt;Args&amp;gt;(args)...)]() mutable { return std::apply(std::move(fn), std::move(tup)); };
+    }
+
+    void worker_loop() {
+        for (;;) {
+            Task task;
+            {
+                std::unique_lock&amp;lt;std::mutex&amp;gt; lock(mutex_);
+                cv_.wait(lock, [this] { return stop_ || !tasks_.empty(); });
+                if (stop_ &amp;amp;&amp;amp; tasks_.empty()) {
+                    return;
+                }
+                task = std::move(tasks_.front());
+                tasks_.pop_front();
+                ++active_;
+            }
+
+            task();
+
+            {
+                std::lock_guard&amp;lt;std::mutex&amp;gt; lock(mutex_);
+                --active_;
+                if (tasks_.empty() &amp;amp;&amp;amp; active_ == 0) {
+                    idle_cv_.notify_all();
+                }
+            }
+        }
+    }
+
+    std::vector&amp;lt;std::thread&amp;gt; workers_;
+    std::deque&amp;lt;Task&amp;gt; tasks_;
+    mutable std::mutex mutex_;
+    std::condition_variable cv_;
+    std::condition_variable idle_cv_;
+    bool stop_;
+    std::size_t active_;
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h1&gt;Reference&lt;/h1&gt;
+&lt;p&gt;::github{repo=&quot;progschj/ThreadPool&quot;}&lt;/p&gt;
+</content:encoded></item></channel></rss>
