@@ -230,7 +230,7 @@ export const siteConfig: SiteConfig = {
 			enableCompress: true, // 启用字体子集优化，减少字体文件大小
 		},
 	},
-	showLastModified: true, // 控制"上次编辑"卡片显示的开关
+	showLastModified: false, // 控制"上次编辑"卡片显示的开关
 	pageProgressBar: {
 		enable: true, // 启用页面顶部进度条
 		height: 3, // 进度条高度 3px
@@ -442,7 +442,7 @@ export const permalinkConfig: PermalinkConfig = {
 export const expressiveCodeConfig: ExpressiveCodeConfig = {
 	// 注意：某些样式（如背景颜色）已被覆盖，请参阅 astro.config.mjs 文件。
 	// 请选择深色主题，因为此博客主题目前仅支持深色背景
-	theme: "github-dark",
+	theme: "github-light",
 	// 是否在主题切换时隐藏代码块以避免卡顿问题
 	hideDuringThemeTransition: true,
 };
@@ -476,7 +476,7 @@ export const shareConfig: ShareConfig = {
 
 export const announcementConfig: AnnouncementConfig = {
 	title: "News", // 公告标题，填空使用i18n字符串Key.announcement
-	content: "News", // 公告内容
+	content: "", // 公告内容
 	closable: false, // 允许用户关闭公告
 	link: {
 		enable: false, // 启用链接
