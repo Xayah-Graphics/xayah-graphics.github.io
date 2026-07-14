@@ -77,9 +77,22 @@
           ]
         }
       ],
+      projects: [
+        {
+          title: "Spectra",
+          description: "Spectra is a modern visualization workspace with a Vulkan based rasterizer and CUDA based pathtracer for graphics research.",
+          imageUrl: "https://raw.githubusercontent.com/Xayah-Graphics/imagebed/14c6599b610e65a7ef42174e6910dac53004cec9/spectra-banner2.png",
+          imageAlt: "Spectra graphics research workspace banner",
+          tags: ["CUDA Pathtracer", "Vulkan Rasterizer", "PBRT"],
+          links: [
+            { label: "GitHub", url: "https://github.com/Xayah-Graphics/spectra" }
+          ]
+        }
+      ],
       labels: {
         skip: "Skip to main content",
         publications: "Publications",
+        projects: "Projects",
         imageFallback: "Preview unavailable",
         resourcesForthcoming: "Resources forthcoming",
         footer: "All rights reserved."
@@ -458,6 +471,91 @@
       font-size: 0.875rem;
     }
 
+    .projects-section {
+      border-top: 1px solid var(--line);
+    }
+
+    .project-list {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .project-card {
+      padding: 1rem;
+      overflow: hidden;
+      background: var(--card);
+      border-radius: 0.75rem;
+      transition: background-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    @media (hover: hover) {
+      .project-card:hover {
+        background: var(--card-hover);
+        box-shadow: var(--shadow);
+      }
+    }
+
+    .project-layout {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .project-image-frame {
+      width: 100%;
+      flex: 0 0 auto;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      background: #030617;
+      border-radius: 0.5rem;
+    }
+
+    .project-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .project-content {
+      min-width: 0;
+    }
+
+    .project-title {
+      margin: 0;
+      color: var(--text);
+      font-size: 1.4rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .project-description {
+      margin: 0.6rem 0 0;
+      color: var(--text-secondary);
+      line-height: 1.625;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 1rem 0 0;
+      padding: 0;
+      gap: 0.5rem;
+      list-style: none;
+    }
+
+    .project-tag {
+      padding: 0.2rem 0.6rem;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 0.8rem;
+    }
+
+    .project-links {
+      margin-top: 1rem;
+    }
+
     .site-footer {
       padding: 1rem;
       color: var(--subtle);
@@ -481,6 +579,19 @@
       }
 
       .publication-content {
+        flex: 1 1 0;
+      }
+
+      .project-layout {
+        align-items: flex-start;
+        flex-direction: row;
+      }
+
+      .project-image-frame {
+        width: 14rem;
+      }
+
+      .project-content {
         flex: 1 1 0;
       }
     }
@@ -532,7 +643,8 @@
         display: none;
       }
 
-      .publication-card {
+      .publication-card,
+      .project-card {
         border: 1px solid var(--line);
         break-inside: avoid;
       }
@@ -576,6 +688,11 @@
       <h2 id="publications-title" class="section-title">Publications</h2>
       <div id="publication-list" class="publication-list"></div>
     </section>
+
+    <section class="section-container projects-section" aria-labelledby="projects-title">
+      <h2 id="projects-title" class="section-title">Projects</h2>
+      <div id="project-list" class="project-list"></div>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -594,6 +711,22 @@
           <p class="publication-authors"></p>
           <p class="publication-venue"></p>
           <div class="resource-list"></div>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <template id="project-template">
+    <article class="project-card">
+      <div class="project-layout">
+        <div class="project-image-frame">
+          <img class="project-image" alt="" width="2172" height="724" loading="lazy" decoding="async">
+        </div>
+        <div class="project-content">
+          <h3 class="project-title"></h3>
+          <p class="project-description"></p>
+          <ul class="project-tags" aria-label="Technologies"></ul>
+          <div class="resource-list project-links"></div>
         </div>
       </div>
     </article>
@@ -646,6 +779,7 @@
         byId("localized-name").textContent = profile.localizedName ? ` (${profile.localizedName})` : "";
         byId("profile-subtitle").textContent = profile.subtitle;
         byId("publications-title").textContent = labels.publications;
+        byId("projects-title").textContent = labels.projects;
         byId("footer-text").textContent = `© ${new Date().getFullYear()} ${profile.name}. ${labels.footer}`;
 
         if (validUrl(profile.avatarUrl)) {
@@ -802,11 +936,47 @@
         }
       }
 
+      function renderProjects() {
+        const target = byId("project-list");
+        const template = byId("project-template");
+        target.replaceChildren();
+
+        for (const project of config.projects || []) {
+          const fragment = template.content.cloneNode(true);
+          const image = fragment.querySelector(".project-image");
+          const tags = fragment.querySelector(".project-tags");
+
+          fragment.querySelector(".project-title").textContent = project.title;
+          fragment.querySelector(".project-description").textContent = project.description || "";
+          renderResources(fragment.querySelector(".project-links"), project.links || []);
+
+          for (const tag of project.tags || []) {
+            const item = document.createElement("li");
+            item.className = "project-tag";
+            item.textContent = tag;
+            tags.append(item);
+          }
+
+          if (validUrl(project.imageUrl)) {
+            image.alt = project.imageAlt || `Preview for ${project.title}`;
+            image.addEventListener("error", () => {
+              image.hidden = true;
+            }, { once: true });
+            image.src = project.imageUrl;
+          } else {
+            image.hidden = true;
+          }
+
+          target.append(fragment);
+        }
+      }
+
       renderStructuredData();
       renderProfile();
       renderBio();
       renderSocials();
       renderPublications();
+      renderProjects();
     })();
   </script>
 </body>
