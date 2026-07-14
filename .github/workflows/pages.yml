@@ -23,6 +23,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Setup Tectonic
+        uses: wtfjoke/setup-tectonic@v4
+        with:
+          tectonic-version: 0.16.9
+      - name: Build project and publication documents
+        shell: bash
+        run: |
+          set -euo pipefail
+          for root in projects publications; do
+            [[ -d "$root" ]] || continue
+            while IFS= read -r -d '' source; do
+              tectonic -X compile -p "$source"
+            done < <(find "$root" -mindepth 2 -maxdepth 2 -type f -name '*.tex' -print0)
+          done
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site

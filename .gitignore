@@ -1,1 +1,3 @@
 .idea
+projects/**/*.pdf
+publications/**/*.pdf

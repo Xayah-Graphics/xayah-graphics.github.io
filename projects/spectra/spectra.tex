@@ -1,0 +1,124 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+
+\definecolor{accent}{HTML}{2563EB}
+\definecolor{codebackground}{HTML}{F3F4F6}
+
+\hypersetup{
+  pdftitle={Spectra Project Documentation},
+  pdfauthor={Xiang Yangcheng},
+  colorlinks=true,
+  linkcolor=accent,
+  urlcolor=accent
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.65em}
+\setlist{itemsep=0.25em, topsep=0.4em}
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{codebackground},
+  breaklines=true,
+  columns=fullflexible,
+  frame=single
+}
+
+\title{
+  \textbf{Spectra}\\[0.35em]
+  \large A Graphics Research Workspace for Static and Live Scenes
+}
+\author{Xiang Yangcheng}
+\date{\href{https://github.com/Xayah-Graphics/spectra}
+  {github.com/Xayah-Graphics/spectra}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Spectra is a C++23 graphics research workspace for inspecting
+static PBRT scenes and live plugin-driven scenes. It maintains one
+shared scene representation that can be consumed by interactive and
+path-traced renderer backends.
+\end{abstract}
+
+\section{Design Goals}
+
+\begin{itemize}
+  \item Keep scene loading outside individual renderer backends.
+  \item Share one active scene between visualization and rendering systems.
+  \item Support static PBRT content and live plugin-provided scenes.
+  \item Keep simulation and reconstruction projects independent from Spectra.
+\end{itemize}
+
+\section{System Architecture}
+
+\subsection{Application Shell}
+
+The application shell owns the window, Vulkan lifecycle, workspace,
+scene selection, and renderer integration.
+
+\subsection{Shared Scene Model}
+
+The \texttt{spectra.scene} model stores the active cameras, geometry,
+materials, volumes, lights, and debug attachments.
+
+\subsection{Scene Inputs}
+
+Static PBRT files and dynamic scene plugins are converted into the
+same shared scene representation before rendering.
+
+\section{Renderer Backends}
+
+\subsection{Vulkan Rasterizer}
+
+The rasterizer provides interactive previews, camera visualization,
+meshes, point clouds, volumes, selection, and debug overlays.
+
+\subsection{CUDA/OptiX Path Tracer}
+
+The path tracer consumes the same active scene and produces
+path-traced output using CUDA and NVIDIA OptiX.
+
+\section{Scene Workflow}
+
+\begin{enumerate}
+  \item Open a PBRT file or a dynamic scene plugin.
+  \item Resolve the source into the shared scene model.
+  \item Select a renderer backend.
+  \item Inspect or render the active scene.
+\end{enumerate}
+
+\section{Build and Run}
+
+The current development toolchain uses C++23, CMake 4.4,
+Vulkan 1.4, CUDA 13.2, NVIDIA OptiX 9.1, and Ninja.
+
+\begin{lstlisting}
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DSPECTRA_OPTIX_PATH=/path/to/OptiX-SDK
+
+cmake --build build --parallel
+./build/spectra
+\end{lstlisting}
+
+A scene can be opened directly:
+
+\begin{lstlisting}
+./build/spectra --scene /path/to/scene.pbrt
+./build/spectra --scene /path/to/plugin.dll
+\end{lstlisting}
+
+\section{Project Links}
+
+Source code:
+\href{https://github.com/Xayah-Graphics/spectra}
+{github.com/Xayah-Graphics/spectra}
+
+\end{document}
