@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+
+  <!-- Keep these static tags in sync with SITE_CONFIG for social crawlers. -->
+  <title>Alex Lin — Academic Homepage</title>
+  <meta id="meta-description" name="description" content="A configurable academic homepage for research in physical simulation and robot learning.">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111827">
+  <link id="canonical-url" rel="canonical" href="https://graphics.xayah.me/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23111827'/%3E%3Ctext x='50' y='63' text-anchor='middle' font-size='42' font-weight='700' fill='white' font-family='Arial,sans-serif'%3EAL%3C/text%3E%3C/svg%3E">
+  <meta id="og-title" property="og:title" content="Alex Lin — Academic Homepage">
+  <meta id="og-description" property="og:description" content="A configurable academic homepage for research in physical simulation and robot learning.">
+  <meta id="og-url" property="og:url" content="https://graphics.xayah.me/">
+  <meta id="og-image" property="og:image" content="https://api.dicebear.com/9.x/initials/png?seed=Alex%20Lin&amp;backgroundColor=e5e7eb&amp;size=1200">
+  <meta property="og:type" content="profile">
+  <meta name="twitter:card" content="summary">
+
+  <!-- ================================================================
+       EDIT THIS CONFIG BLOCK TO REPLACE THE EXAMPLE PROFILE.
+       Dynamic text is inserted through DOM APIs, never as raw HTML.
+       ================================================================ -->
+  <script>
+    const SITE_CONFIG = Object.freeze({
+      meta: {
+        lang: "en",
+        title: "Alex Lin — Academic Homepage",
+        description: "A configurable academic homepage for research in physical simulation and robot learning.",
+        url: "https://graphics.xayah.me/",
+        shareImage: "https://api.dicebear.com/9.x/initials/png?seed=Alex%20Lin&backgroundColor=e5e7eb&size=1200"
+      },
+      profile: {
+        name: "Alex Lin",
+        localizedName: "林澈",
+        callMePrefix: "or just call me",
+        shortName: "Alex",
+        subtitle: "Doctoral researcher in visual computing",
+        avatarUrl: "https://api.dicebear.com/9.x/initials/svg?seed=Alex%20Lin&backgroundColor=e5e7eb&fontFamily=Arial&fontSize=36",
+        avatarAlt: "Initials avatar for the fictional researcher Alex Lin",
+        email: "alex.lin@example.com",
+        bio: [
+          [
+            { text: "I study how computational models can turn complex physical systems into reliable, interactive tools. My research lies at the intersection of " },
+            { text: "computer graphics", url: "https://en.wikipedia.org/wiki/Computer_graphics" },
+            { text: ", differentiable simulation, and robot learning." }
+          ],
+          [
+            { text: "I am currently a doctoral researcher at the fictional Northstar Institute, where I work on data-efficient methods that connect simulation with embodied decision-making." }
+          ]
+        ]
+      },
+      socials: [
+        { label: "GitHub", url: "https://github.com/", icon: "github" },
+        { label: "Email", url: "mailto:alex.lin@example.com", icon: "mail" },
+        { label: "Google Scholar", url: "https://scholar.google.com/", icon: "scholar" },
+        { label: "CV", url: "https://example.com/", icon: "text" }
+      ],
+      publications: [
+        {
+          title: "Constraint-Aware Neural Operators for Interactive Elastic Systems",
+          authors: [
+            { name: "Alex Lin", featured: true },
+            { name: "Mira Chen" },
+            { name: "Noah Patel" }
+          ],
+          venue: "ACM Transactions on Graphics, 2026",
+          imageUrl: "https://api.dicebear.com/9.x/shapes/svg?seed=elastic-systems&backgroundColor=ddebe5",
+          imageAlt: "Abstract preview for elastic systems research",
+          links: [
+            { label: "Paper", url: "https://arxiv.org/" },
+            { label: "Code", url: "https://github.com/" }
+          ]
+        },
+        {
+          title: "Learning Stable Contact Models from Sparse Visual Observations",
+          authors: [
+            { name: "Sofia Reyes" },
+            { name: "Alex Lin", featured: true },
+            { name: "Eli Morgan" },
+            { name: "Hana Ito" }
+          ],
+          venue: "IEEE International Conference on Robotics and Automation, 2025",
+          imageUrl: "https://api.dicebear.com/9.x/shapes/svg?seed=contact-models&backgroundColor=ece4d7",
+          imageAlt: "Abstract preview for contact modeling research",
+          links: [
+            { label: "Paper", url: "https://arxiv.org/" },
+            { label: "Video", url: "https://www.youtube.com/" }
+          ]
+        },
+        {
+          title: "A Multiresolution Solver for Real-Time Soft-Robot Co-Design",
+          authors: [
+            { name: "Alex Lin", featured: true },
+            { name: "Mira Chen" },
+            { name: "Jon Bell" }
+          ],
+          venue: "SIGGRAPH Asia, 2024",
+          imageUrl: "https://api.dicebear.com/9.x/shapes/svg?seed=soft-robot&backgroundColor=dfe3ee",
+          imageAlt: "Abstract preview for soft robot research",
+          links: [
+            { label: "Paper", url: "https://arxiv.org/" },
+            { label: "Code", url: "https://github.com/" },
+            { label: "Slides", url: "https://example.com/" }
+          ]
+        },
+        {
+          title: "Structured Latent Dynamics for Long-Horizon Manipulation under Uncertainty",
+          authors: [
+            { name: "Taylor Okafor" },
+            { name: "Alex Lin", featured: true }
+          ],
+          venue: "Research in progress, 2024",
+          imageUrl: "",
+          imageAlt: "",
+          links: []
+        }
+      ],
+      labels: {
+        skip: "Skip to main content",
+        publications: "Publications",
+        imageFallback: "Preview unavailable",
+        resourcesForthcoming: "Resources forthcoming",
+        footer: "All rights reserved."
+      }
+    });
+  </script>
+
+  <style>
+    :root {
+      color-scheme: light dark;
+      --page: #ffffff;
+      --text: #111827;
+      --text-secondary: #374151;
+      --muted: #4b5563;
+      --subtle: #6b7280;
+      --line: #e5e7eb;
+      --card: #f9fafb;
+      --card-hover: #ffffff;
+      --link: #1d4ed8;
+      --focus: #2563eb;
+      --shadow: 0 10px 22px rgba(17, 24, 39, 0.09);
+      --max-width: 56rem;
+      --bio-width: 42rem;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page: #111827;
+        --text: #f3f4f6;
+        --text-secondary: #d1d5db;
+        --muted: #9ca3af;
+        --subtle: #9ca3af;
+        --line: #1f2937;
+        --card: #1f2937;
+        --card-hover: #253142;
+        --link: #93c5fd;
+        --focus: #60a5fa;
+        --shadow: 0 12px 26px rgba(0, 0, 0, 0.3);
+      }
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--page);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-width: 18rem;
+      color: var(--text);
+      background: var(--page);
+      font-size: 1rem;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    img,
+    svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    .skip-link {
+      position: fixed;
+      z-index: 10;
+      top: 0.75rem;
+      left: 0.75rem;
+      padding: 0.65rem 0.9rem;
+      color: #ffffff;
+      background: #111827;
+      border-radius: 0.45rem;
+      font-weight: 700;
+      text-decoration: none;
+      transform: translateY(-160%);
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .section-container {
+      width: calc(100% - 2rem);
+      max-width: var(--max-width);
+      margin-right: auto;
+      margin-left: auto;
+      padding-top: 2rem;
+      padding-bottom: 2rem;
+    }
+
+    .profile-section {
+      padding-top: 1rem;
+      text-align: center;
+    }
+
+    .avatar-frame {
+      position: relative;
+      width: 16rem;
+      height: 16rem;
+      max-width: 74vw;
+      max-height: 74vw;
+      margin: 0 auto 1.5rem;
+      overflow: hidden;
+      background: #e5e7eb;
+      border-radius: 1rem;
+    }
+
+    .avatar-image {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-fallback,
+    .thumbnail-fallback {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #4b5563;
+      background: #e5e7eb;
+      font-weight: 700;
+    }
+
+    .avatar-fallback {
+      font-size: 3rem;
+    }
+
+    .image-missing .avatar-image,
+    .image-missing .publication-image {
+      display: none;
+    }
+
+    .profile-title {
+      margin: 0 0 0.5rem;
+      color: var(--text);
+      font-size: clamp(2rem, 7vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.12;
+      text-wrap: balance;
+    }
+
+    .localized-name {
+      color: var(--subtle);
+      font-weight: 400;
+    }
+
+    .call-me {
+      margin: 0;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .call-me-name {
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+
+    .profile-subtitle {
+      margin: 0.2rem 0 1.5rem;
+      color: var(--muted);
+      font-size: 1.25rem;
+    }
+
+    .bio {
+      max-width: var(--bio-width);
+      margin-right: auto;
+      margin-left: auto;
+      color: var(--text-secondary);
+      line-height: 1.625;
+      text-align: left;
+    }
+
+    .bio p {
+      margin: 0;
+    }
+
+    .bio p + p {
+      margin-top: 1.5rem;
+    }
+
+    .bio a {
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.15em;
+    }
+
+    .social-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1.5rem 0 0;
+      padding: 0;
+      gap: 1rem;
+      list-style: none;
+    }
+
+    .social-link {
+      display: grid;
+      min-width: 3.25rem;
+      height: 3.25rem;
+      padding: 0 0.7rem;
+      place-items: center;
+      color: var(--text);
+      background: transparent;
+      border: 2px solid currentColor;
+      border-radius: 999px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background-color 150ms ease;
+    }
+
+    .social-link:hover {
+      background: var(--card);
+    }
+
+    .social-icon {
+      width: 1.5rem;
+      height: 1.5rem;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.8;
+    }
+
+    .social-icon--fill {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    .publications-section {
+      border-top: 1px solid var(--line);
+    }
+
+    .section-title {
+      margin: 0 0 1rem;
+      color: var(--text);
+      font-size: 1.875rem;
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .publication-list {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .publication-card {
+      padding: 1rem;
+      overflow: hidden;
+      background: var(--card);
+      border-radius: 0.75rem;
+      transition: background-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    @media (hover: hover) {
+      .publication-card:hover {
+        background: var(--card-hover);
+        box-shadow: var(--shadow);
+      }
+    }
+
+    .publication-layout {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .thumbnail-frame {
+      position: relative;
+      width: 100%;
+      flex: 0 0 auto;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      background: #e5e7eb;
+      border-radius: 0.5rem;
+    }
+
+    .publication-image {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .thumbnail-fallback {
+      padding: 1rem;
+      color: #6b7280;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .publication-content {
+      min-width: 0;
+    }
+
+    .publication-title {
+      margin: 0;
+      overflow-wrap: anywhere;
+      color: var(--text);
+      font-size: 1.25rem;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .publication-authors,
+    .publication-venue {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .publication-authors {
+      margin-top: 0.35rem;
+    }
+
+    .publication-venue {
+      margin-top: 0.15rem;
+    }
+
+    .featured-author {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .resource-list {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 0.35rem;
+      gap: 0.75rem;
+    }
+
+    .resource-link {
+      color: var(--link);
+      text-decoration: none;
+    }
+
+    .resource-link:hover {
+      text-decoration: underline;
+    }
+
+    .resource-note {
+      color: var(--subtle);
+      font-size: 0.875rem;
+    }
+
+    .site-footer {
+      padding: 1rem;
+      color: var(--subtle);
+      border-top: 1px solid var(--line);
+      font-size: 0.875rem;
+      text-align: center;
+    }
+
+    .site-footer p {
+      margin: 0;
+    }
+
+    @media (min-width: 48rem) {
+      .publication-layout {
+        align-items: flex-start;
+        flex-direction: row;
+      }
+
+      .thumbnail-frame {
+        width: 14rem;
+      }
+
+      .publication-content {
+        flex: 1 1 0;
+      }
+    }
+
+    @media (max-width: 30rem) {
+      .section-container {
+        width: calc(100% - 1.5rem);
+      }
+
+      .profile-subtitle {
+        font-size: 1.1rem;
+      }
+
+      .social-list {
+        gap: 0.7rem;
+      }
+
+      .social-link {
+        min-width: 3rem;
+        height: 3rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media print {
+      :root {
+        --page: #ffffff;
+        --text: #111827;
+        --text-secondary: #374151;
+        --muted: #4b5563;
+        --subtle: #6b7280;
+        --line: #e5e7eb;
+        --card: #ffffff;
+      }
+
+      .skip-link,
+      .social-list {
+        display: none;
+      }
+
+      .publication-card {
+        border: 1px solid var(--line);
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <a id="skip-link" class="skip-link" href="#main">Skip to main content</a>
+
+  <svg class="visually-hidden" aria-hidden="true" focusable="false">
+    <symbol id="icon-github" viewBox="0 0 24 24">
+      <path d="M12 .7a11.5 11.5 0 0 0-3.64 22.4c.58.1.79-.25.79-.56v-2.23c-3.22.7-3.9-1.37-3.9-1.37-.52-1.34-1.28-1.7-1.28-1.7-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.57-.3-5.27-1.29-5.27-5.73 0-1.27.45-2.3 1.19-3.11-.12-.3-.52-1.47.11-3.07 0 0 .97-.31 3.18 1.19A11.1 11.1 0 0 1 12 6.05c.98 0 1.98.13 2.9.39 2.2-1.5 3.17-1.19 3.17-1.19.63 1.6.23 2.78.11 3.07.74.81 1.19 1.84 1.19 3.11 0 4.45-2.71 5.43-5.29 5.72.42.36.79 1.06.79 2.15v3.24c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z"/>
+    </symbol>
+    <symbol id="icon-mail" viewBox="0 0 24 24">
+      <rect x="3" y="5" width="18" height="14" rx="2"/>
+      <path d="m3 7 9 6 9-6"/>
+    </symbol>
+    <symbol id="icon-scholar" viewBox="0 0 24 24">
+      <path d="m3 9 9-5 9 5-9 5-9-5Z"/>
+      <path d="M7 12.5V17c2.7 2 7.3 2 10 0v-4.5M21 9v7"/>
+    </symbol>
+  </svg>
+
+  <main id="main" tabindex="-1">
+    <section class="section-container profile-section" aria-labelledby="profile-title">
+      <div id="avatar-frame" class="avatar-frame">
+        <span id="avatar-fallback" class="avatar-fallback" aria-hidden="true">AL</span>
+        <img id="avatar-image" class="avatar-image" alt="" width="512" height="512" fetchpriority="high" decoding="async">
+      </div>
+
+      <h1 id="profile-title" class="profile-title">
+        <span id="profile-name"></span>
+        <span id="localized-name" class="localized-name"></span>
+      </h1>
+      <p class="call-me">
+        <span id="call-me-prefix"></span>
+        <span id="call-me-name" class="call-me-name"></span>
+      </p>
+      <p id="profile-subtitle" class="profile-subtitle"></p>
+      <div id="profile-bio" class="bio"></div>
+      <ul id="social-list" class="social-list" aria-label="Profile links"></ul>
+    </section>
+
+    <section class="section-container publications-section" aria-labelledby="publications-title">
+      <h2 id="publications-title" class="section-title">Publications</h2>
+      <div id="publication-list" class="publication-list"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p id="footer-text"></p>
+  </footer>
+
+  <template id="publication-template">
+    <article class="publication-card">
+      <div class="publication-layout">
+        <div class="thumbnail-frame">
+          <span class="thumbnail-fallback" aria-hidden="true"></span>
+          <img class="publication-image" alt="" width="896" height="504" loading="eager" decoding="async">
+        </div>
+        <div class="publication-content">
+          <h3 class="publication-title"></h3>
+          <p class="publication-authors"></p>
+          <p class="publication-venue"></p>
+          <div class="resource-list"></div>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const config = SITE_CONFIG;
+      const byId = (id) => document.getElementById(id);
+      const validUrl = (value) => typeof value === "string" && value.trim() !== "";
+
+      function initials(name) {
+        return String(name || "A")
+          .trim()
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((part) => part[0] || "")
+          .join("")
+          .toUpperCase();
+      }
+
+      function applyLink(anchor, url) {
+        anchor.href = url;
+        if (/^https?:/i.test(url)) {
+          anchor.target = "_blank";
+          anchor.rel = "noopener noreferrer";
+        }
+      }
+
+      function setMetadata() {
+        const { meta, profile, socials } = config;
+        document.documentElement.lang = meta.lang || "en";
+        document.title = meta.title;
+        byId("meta-description").content = meta.description;
+        byId("canonical-url").href = meta.url;
+        byId("og-title").content = meta.title;
+        byId("og-description").content = meta.description;
+        byId("og-url").content = meta.url;
+        byId("og-image").content = meta.shareImage || profile.avatarUrl;
+
+        const jsonLd = document.createElement("script");
+        jsonLd.type = "application/ld+json";
+        jsonLd.textContent = JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: profile.name,
+          alternateName: profile.localizedName || profile.shortName,
+          jobTitle: profile.subtitle,
+          url: meta.url,
+          email: profile.email ? `mailto:${profile.email}` : undefined,
+          image: profile.avatarUrl,
+          sameAs: socials
+            .filter((item) => validUrl(item.url) && /^https?:/i.test(item.url))
+            .map((item) => item.url)
+        });
+        document.head.append(jsonLd);
+      }
+
+      function renderProfile() {
+        const { profile, labels } = config;
+        const avatarFrame = byId("avatar-frame");
+        const avatarImage = byId("avatar-image");
+
+        byId("skip-link").textContent = labels.skip;
+        byId("profile-name").textContent = profile.name;
+        byId("localized-name").textContent = profile.localizedName ? ` (${profile.localizedName})` : "";
+        byId("call-me-prefix").textContent = `${profile.callMePrefix || ""} `;
+        byId("call-me-name").textContent = profile.shortName || profile.name;
+        byId("profile-subtitle").textContent = profile.subtitle;
+        byId("avatar-fallback").textContent = initials(profile.name);
+        byId("publications-title").textContent = labels.publications;
+        byId("footer-text").textContent = `© ${new Date().getFullYear()} ${profile.name}. ${labels.footer}`;
+
+        if (validUrl(profile.avatarUrl)) {
+          avatarImage.alt = profile.avatarAlt || `Portrait of ${profile.name}`;
+          avatarImage.addEventListener("error", () => {
+            avatarImage.hidden = true;
+            avatarFrame.classList.add("image-missing");
+          }, { once: true });
+          avatarImage.src = profile.avatarUrl;
+        } else {
+          avatarImage.hidden = true;
+          avatarFrame.classList.add("image-missing");
+        }
+      }
+
+      function renderBio() {
+        const target = byId("profile-bio");
+        target.replaceChildren();
+
+        for (const paragraph of config.profile.bio || []) {
+          const p = document.createElement("p");
+          for (const fragment of paragraph || []) {
+            if (validUrl(fragment.url)) {
+              const anchor = document.createElement("a");
+              anchor.textContent = fragment.text || "";
+              applyLink(anchor, fragment.url);
+              p.append(anchor);
+            } else {
+              p.append(document.createTextNode(fragment.text || ""));
+            }
+          }
+          target.append(p);
+        }
+      }
+
+      function socialIcon(type) {
+        if (type === "text") return null;
+        const supported = new Set(["github", "mail", "scholar"]);
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+        svg.setAttribute("class", `social-icon ${type === "github" ? "social-icon--fill" : ""}`.trim());
+        svg.setAttribute("aria-hidden", "true");
+        use.setAttribute("href", `#icon-${supported.has(type) ? type : "scholar"}`);
+        svg.append(use);
+        return svg;
+      }
+
+      function renderSocials() {
+        const target = byId("social-list");
+        target.replaceChildren();
+
+        for (const social of config.socials || []) {
+          if (!validUrl(social.url)) continue;
+          const item = document.createElement("li");
+          const anchor = document.createElement("a");
+          const graphic = socialIcon(social.icon);
+          anchor.className = "social-link";
+          anchor.setAttribute("aria-label", social.label);
+          anchor.title = social.label;
+          applyLink(anchor, social.url);
+          if (graphic) anchor.append(graphic);
+          else anchor.textContent = social.label;
+          item.append(anchor);
+          target.append(item);
+        }
+      }
+
+      function renderAuthors(target, authors) {
+        target.replaceChildren();
+        (authors || []).forEach((author, index) => {
+          if (index > 0) target.append(document.createTextNode(", "));
+          const span = document.createElement("span");
+          span.textContent = author.name;
+          if (author.featured) span.className = "featured-author";
+          target.append(span);
+        });
+      }
+
+      function renderResources(target, links) {
+        const usable = (links || []).filter((item) => validUrl(item.url));
+        target.replaceChildren();
+
+        if (!usable.length) {
+          const note = document.createElement("span");
+          note.className = "resource-note";
+          note.textContent = config.labels.resourcesForthcoming;
+          target.append(note);
+          return;
+        }
+
+        for (const resource of usable) {
+          const anchor = document.createElement("a");
+          anchor.className = "resource-link";
+          anchor.textContent = `[${resource.label}]`;
+          applyLink(anchor, resource.url);
+          target.append(anchor);
+        }
+      }
+
+      function renderPublications() {
+        const target = byId("publication-list");
+        const template = byId("publication-template");
+        target.replaceChildren();
+
+        for (const publication of config.publications || []) {
+          const fragment = template.content.cloneNode(true);
+          const imageFrame = fragment.querySelector(".thumbnail-frame");
+          const image = fragment.querySelector(".publication-image");
+
+          fragment.querySelector(".publication-title").textContent = publication.title;
+          fragment.querySelector(".publication-venue").textContent = publication.venue || "";
+          fragment.querySelector(".thumbnail-fallback").textContent = config.labels.imageFallback;
+          renderAuthors(fragment.querySelector(".publication-authors"), publication.authors || []);
+          renderResources(fragment.querySelector(".resource-list"), publication.links || []);
+
+          if (validUrl(publication.imageUrl)) {
+            image.alt = publication.imageAlt || `Preview for ${publication.title}`;
+            image.addEventListener("error", () => {
+              image.hidden = true;
+              imageFrame.classList.add("image-missing");
+            }, { once: true });
+            image.src = publication.imageUrl;
+          } else {
+            image.hidden = true;
+            imageFrame.classList.add("image-missing");
+          }
+
+          target.append(fragment);
+        }
+      }
+
+      setMetadata();
+      renderProfile();
+      renderBio();
+      renderSocials();
+      renderPublications();
+    })();
+  </script>
+</body>
+</html>
