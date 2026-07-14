@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
 
-  <!-- Keep these static tags in sync with SITE_CONFIG for social crawlers. -->
-  <title>Xayah Hina — In solitude, where we are least alone.</title>
-  <meta id="meta-description" name="description" content="Computer Graphics student focused on differentiable simulation, deep learning, and inverse design for fluid and cloth systems.">
+  <!-- Static metadata for browsers, search engines, and social crawlers. -->
+  <title>Xiang Yangcheng — In solitude, where we are least alone.</title>
+  <meta name="description" content="Computer Graphics student focused on differentiable simulation, deep learning, and inverse design for fluid and cloth systems.">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111827">
-  <link id="canonical-url" rel="canonical" href="https://graphics.xayah.me/">
+  <link rel="canonical" href="https://graphics.xayah.me/">
   <link rel="icon" href="https://raw.githubusercontent.com/Xayah-Graphics/imagebed/7772e40fee3de8f8ca11134d04ef5f5816b8ef60/Hatsune.Miku.full.1961310.JPG">
-  <meta id="og-title" property="og:title" content="Xayah Hina — In solitude, where we are least alone.">
-  <meta id="og-description" property="og:description" content="Computer Graphics student focused on differentiable simulation, deep learning, and inverse design for fluid and cloth systems.">
-  <meta id="og-url" property="og:url" content="https://graphics.xayah.me/">
-  <meta id="og-image" property="og:image" content="https://raw.githubusercontent.com/Xayah-Graphics/imagebed/7772e40fee3de8f8ca11134d04ef5f5816b8ef60/Hatsune.Miku.full.1961310.JPG">
+  <meta property="og:title" content="Xiang Yangcheng — In solitude, where we are least alone.">
+  <meta property="og:description" content="Computer Graphics student focused on differentiable simulation, deep learning, and inverse design for fluid and cloth systems.">
+  <meta property="og:url" content="https://graphics.xayah.me/">
+  <meta property="og:image" content="https://raw.githubusercontent.com/Xayah-Graphics/imagebed/7772e40fee3de8f8ca11134d04ef5f5816b8ef60/Hatsune.Miku.full.1961310.JPG">
   <meta property="og:type" content="profile">
   <meta name="twitter:card" content="summary">
 
@@ -25,13 +25,6 @@
        ================================================================ -->
   <script>
     const SITE_CONFIG = Object.freeze({
-      meta: {
-        lang: "en",
-        title: "Xiang Yangcheng — In solitude, where we are least alone.",
-        description: "Computer Graphics student focused on differentiable simulation, deep learning, and inverse design for fluid and cloth systems.",
-        url: "https://graphics.xayah.me/",
-        shareImage: "https://raw.githubusercontent.com/Xayah-Graphics/imagebed/7772e40fee3de8f8ca11134d04ef5f5816b8ef60/Hatsune.Miku.full.1961310.JPG"
-      },
       profile: {
         name: "Xiang Yangcheng",
         localizedName: "",
@@ -622,16 +615,9 @@
         }
       }
 
-      function setMetadata() {
-        const { meta, profile, socials } = config;
-        document.documentElement.lang = meta.lang || "en";
-        document.title = meta.title;
-        byId("meta-description").content = meta.description;
-        byId("canonical-url").href = meta.url;
-        byId("og-title").content = meta.title;
-        byId("og-description").content = meta.description;
-        byId("og-url").content = meta.url;
-        byId("og-image").content = meta.shareImage || profile.avatarUrl;
+      function renderStructuredData() {
+        const { profile, socials } = config;
+        const pageUrl = document.querySelector('link[rel="canonical"]').href;
 
         const jsonLd = document.createElement("script");
         jsonLd.type = "application/ld+json";
@@ -641,7 +627,7 @@
           name: profile.name,
           alternateName: profile.localizedName || undefined,
           jobTitle: profile.subtitle,
-          url: meta.url,
+          url: pageUrl,
           email: profile.email ? `mailto:${profile.email}` : undefined,
           image: profile.avatarUrl,
           sameAs: socials
@@ -816,7 +802,7 @@
         }
       }
 
-      setMetadata();
+      renderStructuredData();
       renderProfile();
       renderBio();
       renderSocials();
