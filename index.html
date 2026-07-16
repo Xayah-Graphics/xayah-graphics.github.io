@@ -57,6 +57,22 @@
         { label: "Google Scholar", url: "https://scholar.google.com/citations?user=u0ttfP8AAAAJ/", icon: "scholar" },
         { label: "CV", url: "http://graphics.xayah.me/cv.pdf", icon: "text" }
       ],
+      news: [
+        {
+          date: "2026-06-23",
+          content: [
+            { text: "Spectra v1.1.0", url: "https://github.com/Xayah-Graphics/spectra/tree/v1.1.0" },
+            { text: " is released." }
+          ]
+        },
+        {
+          date: "2025-05",
+          content: [
+            { text: "Thunderscapes", url: "https://dl.acm.org/doi/full/10.1145/3728312" },
+            { text: " is published in PACMCGIT." }
+          ]
+        }
+      ],
       publications: [
         {
           title: "Thunderscapes: Simulating the Dynamics of Mesoscale Convective System",
@@ -92,6 +108,7 @@
       ],
       labels: {
         skip: "Skip to main content",
+        news: "News",
         publications: "Publications",
         projects: "Projects",
         imageFallback: "Preview unavailable",
@@ -346,6 +363,52 @@
     .social-icon--fill {
       fill: currentColor;
       stroke: none;
+    }
+
+    .news-section {
+      border-top: 1px solid var(--line);
+    }
+
+    .news-list {
+      display: grid;
+      max-width: var(--bio-width);
+      margin: 0 auto;
+      padding: 0;
+      gap: 0.55rem;
+      list-style: none;
+    }
+
+    .news-item {
+      display: grid;
+      grid-template-columns: 6.5rem minmax(0, 1fr);
+      gap: 1rem;
+    }
+
+    .news-date {
+      color: var(--subtle);
+      font-size: 0.875rem;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .news-message {
+      min-width: 0;
+      margin: 0;
+      overflow-wrap: anywhere;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .news-message a {
+      color: var(--text);
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.15em;
+    }
+
+    .news-message a:hover {
+      color: var(--link);
     }
 
     .publications-section {
@@ -633,6 +696,11 @@
         width: calc(100% - 1.5rem);
       }
 
+      .news-item {
+        grid-template-columns: 5.5rem minmax(0, 1fr);
+        gap: 0.75rem;
+      }
+
       .profile-subtitle {
         font-size: 1.1rem;
       }
@@ -678,6 +746,10 @@
       .publication-card,
       .project-card {
         border: 1px solid var(--line);
+        break-inside: avoid;
+      }
+
+      .news-item {
         break-inside: avoid;
       }
     }
@@ -734,6 +806,11 @@
       <ul id="social-list" class="social-list" aria-label="Profile links"></ul>
     </section>
 
+    <section id="news-section" class="section-container news-section" aria-labelledby="news-title">
+      <h2 id="news-title" class="section-title">News</h2>
+      <ul id="news-list" class="news-list"></ul>
+    </section>
+
     <section class="section-container publications-section" aria-labelledby="publications-title">
       <h2 id="publications-title" class="section-title">Publications</h2>
       <div id="publication-list" class="publication-list"></div>
@@ -748,6 +825,13 @@
   <footer class="site-footer">
     <p id="footer-text"></p>
   </footer>
+
+  <template id="news-template">
+    <li class="news-item">
+      <time class="news-date"></time>
+      <p class="news-message"></p>
+    </li>
+  </template>
 
   <template id="publication-template">
     <article class="publication-card">
@@ -828,6 +912,7 @@
         byId("profile-name").textContent = profile.name;
         byId("localized-name").textContent = profile.localizedName ? ` (${profile.localizedName})` : "";
         byId("profile-subtitle").textContent = profile.subtitle;
+        byId("news-title").textContent = labels.news;
         byId("publications-title").textContent = labels.publications;
         byId("projects-title").textContent = labels.projects;
         byId("footer-text").textContent = `© ${new Date().getFullYear()} ${profile.name}. ${labels.footer}`;
@@ -964,6 +1049,67 @@
         }
       }
 
+      function formatNewsDate(value) {
+        const match = /^(\d{4})-(\d{2})(?:-(\d{2}))?$/.exec(value || "");
+        if (!match) return "";
+
+        const [, year, month, day] = match;
+        const numericYear = Number(year);
+        const numericMonth = Number(month);
+        const numericDay = Number(day || 1);
+        if (numericMonth < 1 || numericMonth > 12) return "";
+
+        const date = new Date(Date.UTC(numericYear, numericMonth - 1, numericDay));
+        if (
+          Number.isNaN(date.getTime()) ||
+          date.getUTCFullYear() !== numericYear ||
+          date.getUTCMonth() !== numericMonth - 1 ||
+          date.getUTCDate() !== numericDay
+        ) return "";
+
+        return new Intl.DateTimeFormat("en", {
+          month: "short",
+          year: "numeric",
+          ...(day ? { day: "numeric" } : {}),
+          timeZone: "UTC"
+        }).format(date);
+      }
+
+      function renderNews() {
+        const section = byId("news-section");
+        const target = byId("news-list");
+        const template = byId("news-template");
+        const news = [...(config.news || [])]
+          .filter((item) => formatNewsDate(item.date) && (item.content || []).some((part) => part.text))
+          .sort((left, right) => right.date.localeCompare(left.date));
+
+        target.replaceChildren();
+        section.hidden = news.length === 0;
+
+        for (const item of news) {
+          const fragment = template.content.cloneNode(true);
+          const date = fragment.querySelector(".news-date");
+          const message = fragment.querySelector(".news-message");
+
+          date.dateTime = item.date;
+          date.textContent = formatNewsDate(item.date);
+
+          for (const part of item.content) {
+            const content = document.createTextNode(part.text || "");
+            if (validUrl(part.url)) {
+              const anchor = document.createElement("a");
+              applyLink(anchor, part.url, part.newTab);
+              anchor.append(content);
+              message.append(anchor);
+            } else {
+              message.append(content);
+            }
+          }
+
+          target.append(fragment);
+        }
+      }
+
       function renderPublications() {
         const target = byId("publication-list");
         const template = byId("publication-template");
@@ -1032,6 +1178,7 @@
       renderProfile();
       renderBio();
       renderSocials();
+      renderNews();
       renderPublications();
       renderProjects();
     })();
